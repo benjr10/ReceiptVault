@@ -70,8 +70,6 @@ Prevent user confusion
 
 
 
----
-
 4. Disabled / Blocked State
 
 Used when:
@@ -82,13 +80,10 @@ Actions cannot proceed
 
 
 Must:
-
 Visually indicate non-interactive state
 
 
 
-
----
 
 5. Data Visualization Colors
 
