@@ -1,0 +1,570 @@
+/*
+ * ============================================
+ *  ReceiptVault Design Tokens
+ *  Auto-generated — do not edit by hand.
+ *  Source: docs/design-tokens.tokens.json
+ *  Generated: 2026-04-16T15:15:31.673Z
+ * ============================================
+ *
+ *  COLOR USAGE GUIDE:
+ *  • --color-*  variables are COLOR ROLES — use these in your UI.
+ *  • --_primitive-* variables are internal palette values.
+ *    They exist only so color roles can reference them via var().
+ *    Never use --_primitive-* directly in component styles.
+ *
+ *  TYPOGRAPHY USAGE GUIDE:
+ *  • --font-*  variables come from composite font style tokens.
+ *  • --typo-*  variables come from broken-out typography tokens.
+ */
+:root {
+  /* ═══════════════════════════════════════════════════════
+     PRIMITIVE COLORS (internal reference — do NOT use directly in UI)
+     ═══════════════════════════════════════════════════════ */
+
+  /* — Key Colors — */
+  --_primitive-key-primary-key-color: #004d61ff;
+  --_primitive-key-secondary-key-color: #00a86bff;
+  --_primitive-key-tertiary-key-color: #00838fff;
+  --_primitive-key-accent-key-color: #f4a261ff;
+  --_primitive-key-success-key-color: #10b981ff;
+  --_primitive-key-warning-key-color: #f59e0bff;
+  --_primitive-key-error-key-color: #eb1414ff;
+  --_primitive-key-neutral-key-color: #64748bff;
+  --_primitive-key-surface-key-color: #1d1b20ff;
+
+  /* — Primary Palette — */
+  --_primitive-primary-primary0: #ffffffff;
+  --_primitive-primary-primary10: #ffffffff;
+  --_primitive-primary-primary20: #ffffffff;
+  --_primitive-primary-primary30: #ffffffff;
+  --_primitive-primary-primary40: #ffffffff;
+  --_primitive-primary-primary50: #ffffffff;
+  --_primitive-primary-primary60: #ffffffff;
+  --_primitive-primary-primary70: #ffffffff;
+  --_primitive-primary-primary80: #ffffffff;
+  --_primitive-primary-primary90: #ffffffff;
+  --_primitive-primary-primary95: #ffffffff;
+  --_primitive-primary-primary98: #ffffffff;
+  --_primitive-primary-primary99: #ffffffff;
+  --_primitive-primary-primary100: #ffffffff;
+
+  /* — Secondary Palette — */
+  --_primitive-secondary-secondary0: #ffffffff;
+  --_primitive-secondary-secondary10: #ffffffff;
+  --_primitive-secondary-secondary20: #ffffffff;
+  --_primitive-secondary-secondary30: #ffffffff;
+  --_primitive-secondary-secondary40: #ffffffff;
+  --_primitive-secondary-secondary50: #ffffffff;
+  --_primitive-secondary-secondary60: #ffffffff;
+  --_primitive-secondary-secondary70: #ffffffff;
+  --_primitive-secondary-secondary80: #ffffffff;
+  --_primitive-secondary-secondary90: #ffffffff;
+  --_primitive-secondary-secondary95: #ffffffff;
+  --_primitive-secondary-secondary98: #ffffffff;
+  --_primitive-secondary-secondary99: #ffffffff;
+  --_primitive-secondary-secondary100: #ffffffff;
+
+  /* — Tertiary Palette — */
+  --_primitive-tertiary-tertiary0: #ffffffff;
+  --_primitive-tertiary-tertiary10: #ffffffff;
+  --_primitive-tertiary-tertiary20: #ffffffff;
+  --_primitive-tertiary-tertiary30: #ffffffff;
+  --_primitive-tertiary-tertiary40: #ffffffff;
+  --_primitive-tertiary-tertiary50: #ffffffff;
+  --_primitive-tertiary-tertiary60: #ffffffff;
+  --_primitive-tertiary-tertiary70: #ffffffff;
+  --_primitive-tertiary-tertiary80: #ffffffff;
+  --_primitive-tertiary-tertiary90: #ffffffff;
+  --_primitive-tertiary-tertiary95: #ffffffff;
+  --_primitive-tertiary-tertiary98: #ffffffff;
+  --_primitive-tertiary-tertiary99: #ffffffff;
+  --_primitive-tertiary-tertiary100: #ffffffff;
+
+  /* — Accent Palette — */
+  --_primitive-accent-accent0: #ffffffff;
+  --_primitive-accent-accent10: #ffffffff;
+  --_primitive-accent-accent20: #ffffffff;
+  --_primitive-accent-accent30: #ffffffff;
+  --_primitive-accent-accent40: #ffffffff;
+  --_primitive-accent-accent50: #ffffffff;
+  --_primitive-accent-accent60: #ffffffff;
+  --_primitive-accent-accent70: #ffffffff;
+  --_primitive-accent-accent80: #ffffffff;
+  --_primitive-accent-accent90: #ffffffff;
+  --_primitive-accent-accent95: #ffffffff;
+  --_primitive-accent-accent98: #ffffffff;
+  --_primitive-accent-accent99: #ffffffff;
+  --_primitive-accent-accent100: #ffffffff;
+
+  /* — Success Palette — */
+  --_primitive-success-success0: #ffffffff;
+  --_primitive-success-success10: #ffffffff;
+  --_primitive-success-success20: #ffffffff;
+  --_primitive-success-success30: #ffffffff;
+  --_primitive-success-success40: #ffffffff;
+  --_primitive-success-success50: #ffffffff;
+  --_primitive-success-success60: #ffffffff;
+  --_primitive-success-success70: #ffffffff;
+  --_primitive-success-success80: #ffffffff;
+  --_primitive-success-success90: #ffffffff;
+  --_primitive-success-success95: #ffffffff;
+  --_primitive-success-success98: #ffffffff;
+  --_primitive-success-success99: #ffffffff;
+  --_primitive-success-success100: #ffffffff;
+
+  /* — Warning Palette — */
+  --_primitive-warning-warning0: #ffffffff;
+  --_primitive-warning-warning10: #ffffffff;
+  --_primitive-warning-warning20: #ffffffff;
+  --_primitive-warning-warning30: #ffffffff;
+  --_primitive-warning-warning40: #ffffffff;
+  --_primitive-warning-warning50: #ffffffff;
+  --_primitive-warning-warning60: #ffffffff;
+  --_primitive-warning-warning70: #ffffffff;
+  --_primitive-warning-warning80: #ffffffff;
+  --_primitive-warning-warning90: #ffffffff;
+  --_primitive-warning-warning95: #ffffffff;
+  --_primitive-warning-warning98: #ffffffff;
+  --_primitive-warning-warning99: #ffffffff;
+  --_primitive-warning-warning100: #ffffffff;
+
+  /* — Error Palette — */
+  --_primitive-error-error0: #ffffffff;
+  --_primitive-error-error10: #ffffffff;
+  --_primitive-error-error20: #ffffffff;
+  --_primitive-error-error30: #ffffffff;
+  --_primitive-error-error40: #ffffffff;
+  --_primitive-error-error50: #ffffffff;
+  --_primitive-error-error60: #ffffffff;
+  --_primitive-error-error70: #ffffffff;
+  --_primitive-error-error80: #ffffffff;
+  --_primitive-error-error90: #ffffffff;
+  --_primitive-error-error95: #ffffffff;
+  --_primitive-error-error98: #ffffffff;
+  --_primitive-error-error99: #ffffffff;
+  --_primitive-error-error100: #ffffffff;
+
+  /* — Neutral Palette — */
+  --_primitive-neutral-neutral0: #ffffffff;
+  --_primitive-neutral-neutral10: #ffffffff;
+  --_primitive-neutral-neutral20: #ffffffff;
+  --_primitive-neutral-neutral30: #ffffffff;
+  --_primitive-neutral-neutral40: #ffffffff;
+  --_primitive-neutral-neutral50: #ffffffff;
+  --_primitive-neutral-neutral60: #ffffffff;
+  --_primitive-neutral-neutral70: #ffffffff;
+  --_primitive-neutral-neutral80: #ffffffff;
+  --_primitive-neutral-neutral90: #ffffffff;
+  --_primitive-neutral-neutral95: #ffffffff;
+  --_primitive-neutral-neutral98: #ffffffff;
+  --_primitive-neutral-neutral99: #ffffffff;
+  --_primitive-neutral-neutral100: #ffffffff;
+
+  /* — Surface Palette — */
+  --_primitive-surface-surface0: #ffffffff;
+  --_primitive-surface-surface10: #ffffffff;
+  --_primitive-surface-surface20: #ffffffff;
+  --_primitive-surface-surface30: #ffffffff;
+  --_primitive-surface-surface40: #ffffffff;
+  --_primitive-surface-surface50: #ffffffff;
+  --_primitive-surface-surface60: #ffffffff;
+  --_primitive-surface-surface70: #ffffffff;
+  --_primitive-surface-surface80: #ffffffff;
+  --_primitive-surface-surface90: #ffffffff;
+  --_primitive-surface-surface95: #ffffffff;
+  --_primitive-surface-surface98: #ffffffff;
+  --_primitive-surface-surface99: #ffffffff;
+  --_primitive-surface-surface100: #ffffffff;
+
+  /* ═══════════════════════════════════════════════════════
+     COLOR ROLES (use these in UI components)
+     ═══════════════════════════════════════════════════════ */
+
+  /* — Primary color roles — */
+  --color-primary: var(--_primitive-key-primary-key-color);
+  --color-primary-container: var(--_primitive-primary-primary90);
+  --color-on-primary-container: var(--_primitive-primary-primary30);
+  --color-on-primary: var(--_primitive-primary-primary100);
+
+  /* — Secondary color role — */
+  --color-secondary: var(--_primitive-secondary-secondary40);
+  --color-on-secondary: #ffffffff;
+  --color-seconday-container: var(--_primitive-secondary-secondary90);
+  --color-on-secondary-container: var(--_primitive-secondary-secondary30);
+
+  /* — Tertiary color role — */
+  --color-tertiary: var(--_primitive-tertiary-tertiary40);
+  --color-on-tertiary: #ffffffff;
+  --color-tertiary-container: var(--_primitive-tertiary-tertiary90);
+  --color-on-tertiary-container: var(--_primitive-tertiary-tertiary30);
+
+  /* — Accent color role — */
+  --color-accent: var(--_primitive-accent-accent40);
+  --color-on-accent: #ffffffff;
+  --color-accent-container: var(--_primitive-accent-accent90);
+  --color-on-accent-container: var(--_primitive-accent-accent30);
+
+  /* — Success color role — */
+  --color-success: var(--_primitive-success-success40);
+  --color-on-success: #ffffffff;
+  --color-success-container: var(--_primitive-success-success90);
+  --color-on-success-container: var(--_primitive-success-success30);
+
+  /* — Warning color role — */
+  --color-warning: var(--_primitive-warning-warning40);
+  --color-on-warning: #ffffffff;
+  --color-waning-container: var(--_primitive-warning-warning90);
+  --color-on-warning-container: var(--_primitive-warning-warning30);
+
+  /* — Error color role — */
+  --color-error: var(--_primitive-error-error40);
+  --color-on-error: #ffffffff;
+  --color-error-container: var(--_primitive-error-error90);
+  --color-on-error-container: var(--_primitive-error-error30);
+
+  /* — Neutral color role — */
+  --color-neutral: var(--_primitive-neutral-neutral40);
+  --color-on-neutral: #ffffffff;
+  --color-neutral-container: var(--_primitive-neutral-neutral90);
+  --color-on-neutral-container: var(--_primitive-neutral-neutral30);
+
+  /* — Surface color role — */
+  --color-surface: var(--_primitive-surface-surface40);
+  --color-on-surface: #ffffffff;
+  --color-surface-container: var(--_primitive-surface-surface90);
+  --color-on-surface-container: var(--_primitive-surface-surface30);
+
+  /* ═══════════════════════════════════════════════════════
+     TYPOGRAPHY — Composite Font Styles
+     ═══════════════════════════════════════════════════════ */
+
+  /* — Display — */
+  --font-display-displaylarge-font-family: 'Poppins', sans-serif;
+  --font-display-displaylarge-font-size: 60px;
+  --font-display-displaylarge-font-weight: 500;
+  --font-display-displaylarge-font-style: normal;
+  --font-display-displaylarge-letter-spacing: -0.6px;
+  --font-display-displaylarge-line-height: 64px;
+  --font-display-displaylarge-text-decoration: none;
+  --font-display-displaylarge-text-transform: none;
+
+  --font-display-displaymedium-font-family: 'Poppins', sans-serif;
+  --font-display-displaymedium-font-size: 50px;
+  --font-display-displaymedium-font-weight: 500;
+  --font-display-displaymedium-font-style: normal;
+  --font-display-displaymedium-letter-spacing: -0.5px;
+  --font-display-displaymedium-line-height: 52px;
+  --font-display-displaymedium-text-decoration: none;
+  --font-display-displaymedium-text-transform: none;
+
+  --font-display-displaysmall-font-family: 'Poppins', sans-serif;
+  --font-display-displaysmall-font-size: 36px;
+  --font-display-displaysmall-font-weight: 500;
+  --font-display-displaysmall-font-style: normal;
+  --font-display-displaysmall-letter-spacing: -0.36px;
+  --font-display-displaysmall-line-height: 44px;
+  --font-display-displaysmall-text-decoration: none;
+  --font-display-displaysmall-text-transform: none;
+
+  /* — Headline — */
+  --font-headline-headlinelarge-font-family: 'Poppins', sans-serif;
+  --font-headline-headlinelarge-font-size: 32px;
+  --font-headline-headlinelarge-font-weight: 600;
+  --font-headline-headlinelarge-font-style: normal;
+  --font-headline-headlinelarge-letter-spacing: -0.32px;
+  --font-headline-headlinelarge-line-height: 40px;
+  --font-headline-headlinelarge-text-decoration: none;
+  --font-headline-headlinelarge-text-transform: none;
+
+  --font-headline-headlinemedium-font-family: 'Poppins', sans-serif;
+  --font-headline-headlinemedium-font-size: 28px;
+  --font-headline-headlinemedium-font-weight: 500;
+  --font-headline-headlinemedium-font-style: normal;
+  --font-headline-headlinemedium-letter-spacing: -0.28px;
+  --font-headline-headlinemedium-line-height: 36px;
+  --font-headline-headlinemedium-text-decoration: none;
+  --font-headline-headlinemedium-text-transform: none;
+
+  --font-headline-headlinesmall-font-family: 'Poppins', sans-serif;
+  --font-headline-headlinesmall-font-size: 24px;
+  --font-headline-headlinesmall-font-weight: 500;
+  --font-headline-headlinesmall-font-style: normal;
+  --font-headline-headlinesmall-letter-spacing: -0.24px;
+  --font-headline-headlinesmall-line-height: 32px;
+  --font-headline-headlinesmall-text-decoration: none;
+  --font-headline-headlinesmall-text-transform: none;
+
+  /* — Title — */
+  --font-title-titlelarge-font-family: 'Poppins', sans-serif;
+  --font-title-titlelarge-font-size: 22px;
+  --font-title-titlelarge-font-weight: 600;
+  --font-title-titlelarge-font-style: normal;
+  --font-title-titlelarge-letter-spacing: -0.22px;
+  --font-title-titlelarge-line-height: 28px;
+  --font-title-titlelarge-text-decoration: none;
+  --font-title-titlelarge-text-transform: none;
+
+  --font-title-titlemedium-font-family: 'Poppins', sans-serif;
+  --font-title-titlemedium-font-size: 16px;
+  --font-title-titlemedium-font-weight: 500;
+  --font-title-titlemedium-font-style: normal;
+  --font-title-titlemedium-letter-spacing: -0.16px;
+  --font-title-titlemedium-line-height: 24px;
+  --font-title-titlemedium-text-decoration: none;
+  --font-title-titlemedium-text-transform: none;
+
+  --font-title-titlesmall-font-family: 'Poppins', sans-serif;
+  --font-title-titlesmall-font-size: 14px;
+  --font-title-titlesmall-font-weight: 500;
+  --font-title-titlesmall-font-style: normal;
+  --font-title-titlesmall-letter-spacing: -0.14px;
+  --font-title-titlesmall-line-height: 20px;
+  --font-title-titlesmall-text-decoration: none;
+  --font-title-titlesmall-text-transform: none;
+
+  /* — Body — */
+  --font-body-bodylarge-font-family: 'Poppins', sans-serif;
+  --font-body-bodylarge-font-size: 16px;
+  --font-body-bodylarge-font-weight: 600;
+  --font-body-bodylarge-font-style: normal;
+  --font-body-bodylarge-letter-spacing: -0.16px;
+  --font-body-bodylarge-line-height: 24px;
+  --font-body-bodylarge-text-decoration: none;
+  --font-body-bodylarge-text-transform: none;
+
+  --font-body-bodymedium-font-family: 'Poppins', sans-serif;
+  --font-body-bodymedium-font-size: 14px;
+  --font-body-bodymedium-font-weight: 500;
+  --font-body-bodymedium-font-style: normal;
+  --font-body-bodymedium-letter-spacing: -0.14px;
+  --font-body-bodymedium-line-height: 20px;
+  --font-body-bodymedium-text-decoration: none;
+  --font-body-bodymedium-text-transform: none;
+
+  --font-body-bodysmall-font-family: 'Poppins', sans-serif;
+  --font-body-bodysmall-font-size: 12px;
+  --font-body-bodysmall-font-weight: 500;
+  --font-body-bodysmall-font-style: normal;
+  --font-body-bodysmall-letter-spacing: -0.12px;
+  --font-body-bodysmall-line-height: 16px;
+  --font-body-bodysmall-text-decoration: none;
+  --font-body-bodysmall-text-transform: none;
+
+  /* — Label — */
+  --font-label-labellarge-font-family: 'Poppins', sans-serif;
+  --font-label-labellarge-font-size: 16px;
+  --font-label-labellarge-font-weight: 600;
+  --font-label-labellarge-font-style: normal;
+  --font-label-labellarge-letter-spacing: -0.16px;
+  --font-label-labellarge-line-height: 20px;
+  --font-label-labellarge-text-decoration: none;
+  --font-label-labellarge-text-transform: none;
+
+  --font-label-labelmedium-font-family: 'Poppins', sans-serif;
+  --font-label-labelmedium-font-size: 14px;
+  --font-label-labelmedium-font-weight: 500;
+  --font-label-labelmedium-font-style: normal;
+  --font-label-labelmedium-letter-spacing: -0.14px;
+  --font-label-labelmedium-line-height: 16px;
+  --font-label-labelmedium-text-decoration: none;
+  --font-label-labelmedium-text-transform: none;
+
+  --font-label-labelsmall-font-family: 'Poppins', sans-serif;
+  --font-label-labelsmall-font-size: 12px;
+  --font-label-labelsmall-font-weight: 500;
+  --font-label-labelsmall-font-style: normal;
+  --font-label-labelsmall-letter-spacing: -0.12px;
+  --font-label-labelsmall-line-height: 16px;
+  --font-label-labelsmall-text-decoration: none;
+  --font-label-labelsmall-text-transform: none;
+
+  /* ═══════════════════════════════════════════════════════
+     TYPOGRAPHY — Individual Properties
+     ═══════════════════════════════════════════════════════ */
+
+  /* — Display — */
+  --typo-display-displaylarge-fontsize: 60px;
+  --typo-display-displaylarge-textdecoration: none;
+  --typo-display-displaylarge-fontfamily: Poppins;
+  --typo-display-displaylarge-fontweight: 500;
+  --typo-display-displaylarge-fontstyle: normal;
+  --typo-display-displaylarge-fontstretch: normal;
+  --typo-display-displaylarge-letterspacing: -0.6px;
+  --typo-display-displaylarge-lineheight: 64px;
+  --typo-display-displaylarge-paragraphindent: 0px;
+  --typo-display-displaylarge-paragraphspacing: 0px;
+  --typo-display-displaylarge-textcase: none;
+
+  --typo-display-displaymedium-fontsize: 50px;
+  --typo-display-displaymedium-textdecoration: none;
+  --typo-display-displaymedium-fontfamily: Poppins;
+  --typo-display-displaymedium-fontweight: 500;
+  --typo-display-displaymedium-fontstyle: normal;
+  --typo-display-displaymedium-fontstretch: normal;
+  --typo-display-displaymedium-letterspacing: -0.5px;
+  --typo-display-displaymedium-lineheight: 52px;
+  --typo-display-displaymedium-paragraphindent: 0px;
+  --typo-display-displaymedium-paragraphspacing: 0px;
+  --typo-display-displaymedium-textcase: none;
+
+  --typo-display-displaysmall-fontsize: 36px;
+  --typo-display-displaysmall-textdecoration: none;
+  --typo-display-displaysmall-fontfamily: Poppins;
+  --typo-display-displaysmall-fontweight: 500;
+  --typo-display-displaysmall-fontstyle: normal;
+  --typo-display-displaysmall-fontstretch: normal;
+  --typo-display-displaysmall-letterspacing: -0.36px;
+  --typo-display-displaysmall-lineheight: 44px;
+  --typo-display-displaysmall-paragraphindent: 0px;
+  --typo-display-displaysmall-paragraphspacing: 0px;
+  --typo-display-displaysmall-textcase: none;
+
+  /* — Headline — */
+  --typo-headline-headlinelarge-fontsize: 32px;
+  --typo-headline-headlinelarge-textdecoration: none;
+  --typo-headline-headlinelarge-fontfamily: Poppins;
+  --typo-headline-headlinelarge-fontweight: 600;
+  --typo-headline-headlinelarge-fontstyle: normal;
+  --typo-headline-headlinelarge-fontstretch: normal;
+  --typo-headline-headlinelarge-letterspacing: -0.32px;
+  --typo-headline-headlinelarge-lineheight: 40px;
+  --typo-headline-headlinelarge-paragraphindent: 0px;
+  --typo-headline-headlinelarge-paragraphspacing: 0px;
+  --typo-headline-headlinelarge-textcase: none;
+
+  --typo-headline-headlinemedium-fontsize: 28px;
+  --typo-headline-headlinemedium-textdecoration: none;
+  --typo-headline-headlinemedium-fontfamily: Poppins;
+  --typo-headline-headlinemedium-fontweight: 500;
+  --typo-headline-headlinemedium-fontstyle: normal;
+  --typo-headline-headlinemedium-fontstretch: normal;
+  --typo-headline-headlinemedium-letterspacing: -0.28px;
+  --typo-headline-headlinemedium-lineheight: 36px;
+  --typo-headline-headlinemedium-paragraphindent: 0px;
+  --typo-headline-headlinemedium-paragraphspacing: 0px;
+  --typo-headline-headlinemedium-textcase: none;
+
+  --typo-headline-headlinesmall-fontsize: 24px;
+  --typo-headline-headlinesmall-textdecoration: none;
+  --typo-headline-headlinesmall-fontfamily: Poppins;
+  --typo-headline-headlinesmall-fontweight: 500;
+  --typo-headline-headlinesmall-fontstyle: normal;
+  --typo-headline-headlinesmall-fontstretch: normal;
+  --typo-headline-headlinesmall-letterspacing: -0.24px;
+  --typo-headline-headlinesmall-lineheight: 32px;
+  --typo-headline-headlinesmall-paragraphindent: 0px;
+  --typo-headline-headlinesmall-paragraphspacing: 0px;
+  --typo-headline-headlinesmall-textcase: none;
+
+  /* — Title — */
+  --typo-title-titlelarge-fontsize: 22px;
+  --typo-title-titlelarge-textdecoration: none;
+  --typo-title-titlelarge-fontfamily: Poppins;
+  --typo-title-titlelarge-fontweight: 600;
+  --typo-title-titlelarge-fontstyle: normal;
+  --typo-title-titlelarge-fontstretch: normal;
+  --typo-title-titlelarge-letterspacing: -0.22px;
+  --typo-title-titlelarge-lineheight: 28px;
+  --typo-title-titlelarge-paragraphindent: 0px;
+  --typo-title-titlelarge-paragraphspacing: 0px;
+  --typo-title-titlelarge-textcase: none;
+
+  --typo-title-titlemedium-fontsize: 16px;
+  --typo-title-titlemedium-textdecoration: none;
+  --typo-title-titlemedium-fontfamily: Poppins;
+  --typo-title-titlemedium-fontweight: 500;
+  --typo-title-titlemedium-fontstyle: normal;
+  --typo-title-titlemedium-fontstretch: normal;
+  --typo-title-titlemedium-letterspacing: -0.16px;
+  --typo-title-titlemedium-lineheight: 24px;
+  --typo-title-titlemedium-paragraphindent: 0px;
+  --typo-title-titlemedium-paragraphspacing: 0px;
+  --typo-title-titlemedium-textcase: none;
+
+  --typo-title-titlesmall-fontsize: 14px;
+  --typo-title-titlesmall-textdecoration: none;
+  --typo-title-titlesmall-fontfamily: Poppins;
+  --typo-title-titlesmall-fontweight: 500;
+  --typo-title-titlesmall-fontstyle: normal;
+  --typo-title-titlesmall-fontstretch: normal;
+  --typo-title-titlesmall-letterspacing: -0.14px;
+  --typo-title-titlesmall-lineheight: 20px;
+  --typo-title-titlesmall-paragraphindent: 0px;
+  --typo-title-titlesmall-paragraphspacing: 0px;
+  --typo-title-titlesmall-textcase: none;
+
+  /* — Body — */
+  --typo-body-bodylarge-fontsize: 16px;
+  --typo-body-bodylarge-textdecoration: none;
+  --typo-body-bodylarge-fontfamily: Poppins;
+  --typo-body-bodylarge-fontweight: 600;
+  --typo-body-bodylarge-fontstyle: normal;
+  --typo-body-bodylarge-fontstretch: normal;
+  --typo-body-bodylarge-letterspacing: -0.16px;
+  --typo-body-bodylarge-lineheight: 24px;
+  --typo-body-bodylarge-paragraphindent: 0px;
+  --typo-body-bodylarge-paragraphspacing: 0px;
+  --typo-body-bodylarge-textcase: none;
+
+  --typo-body-bodymedium-fontsize: 14px;
+  --typo-body-bodymedium-textdecoration: none;
+  --typo-body-bodymedium-fontfamily: Poppins;
+  --typo-body-bodymedium-fontweight: 500;
+  --typo-body-bodymedium-fontstyle: normal;
+  --typo-body-bodymedium-fontstretch: normal;
+  --typo-body-bodymedium-letterspacing: -0.14px;
+  --typo-body-bodymedium-lineheight: 20px;
+  --typo-body-bodymedium-paragraphindent: 0px;
+  --typo-body-bodymedium-paragraphspacing: 0px;
+  --typo-body-bodymedium-textcase: none;
+
+  --typo-body-bodysmall-fontsize: 12px;
+  --typo-body-bodysmall-textdecoration: none;
+  --typo-body-bodysmall-fontfamily: Poppins;
+  --typo-body-bodysmall-fontweight: 500;
+  --typo-body-bodysmall-fontstyle: normal;
+  --typo-body-bodysmall-fontstretch: normal;
+  --typo-body-bodysmall-letterspacing: -0.12px;
+  --typo-body-bodysmall-lineheight: 16px;
+  --typo-body-bodysmall-paragraphindent: 0px;
+  --typo-body-bodysmall-paragraphspacing: 0px;
+  --typo-body-bodysmall-textcase: none;
+
+  /* — Label — */
+  --typo-label-labellarge-fontsize: 16px;
+  --typo-label-labellarge-textdecoration: none;
+  --typo-label-labellarge-fontfamily: Poppins;
+  --typo-label-labellarge-fontweight: 600;
+  --typo-label-labellarge-fontstyle: normal;
+  --typo-label-labellarge-fontstretch: normal;
+  --typo-label-labellarge-letterspacing: -0.16px;
+  --typo-label-labellarge-lineheight: 20px;
+  --typo-label-labellarge-paragraphindent: 0px;
+  --typo-label-labellarge-paragraphspacing: 0px;
+  --typo-label-labellarge-textcase: none;
+
+  --typo-label-labelmedium-fontsize: 14px;
+  --typo-label-labelmedium-textdecoration: none;
+  --typo-label-labelmedium-fontfamily: Poppins;
+  --typo-label-labelmedium-fontweight: 500;
+  --typo-label-labelmedium-fontstyle: normal;
+  --typo-label-labelmedium-fontstretch: normal;
+  --typo-label-labelmedium-letterspacing: -0.14px;
+  --typo-label-labelmedium-lineheight: 16px;
+  --typo-label-labelmedium-paragraphindent: 0px;
+  --typo-label-labelmedium-paragraphspacing: 0px;
+  --typo-label-labelmedium-textcase: none;
+
+  --typo-label-labelsmall-fontsize: 12px;
+  --typo-label-labelsmall-textdecoration: none;
+  --typo-label-labelsmall-fontfamily: Poppins;
+  --typo-label-labelsmall-fontweight: 500;
+  --typo-label-labelsmall-fontstyle: normal;
+  --typo-label-labelsmall-fontstretch: normal;
+  --typo-label-labelsmall-letterspacing: -0.12px;
+  --typo-label-labelsmall-lineheight: 16px;
+  --typo-label-labelsmall-paragraphindent: 0px;
+  --typo-label-labelsmall-paragraphspacing: 0px;
+  --typo-label-labelsmall-textcase: none;
+
+}
