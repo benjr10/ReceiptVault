@@ -1,118 +1,46 @@
-Color Principles
-
-Colors must support:
-
-Clarity
-
-Speed of understanding
-
-Immediate feedback 
-
-
-
-Functional Color Usage
-
-1. Success State
-
+ReceiptVault – Colors
+1. Overview
+Define how color is used to communicate system states, feedback, and data clarity.
+2. Principles
+Colors must support clarity and fast understanding
+No decorative or unnecessary color usage
+Every color must have a functional purpose
+3. Functional Color Usage
+Success State
 Used when:
-
 Expense is saved successfully
-
-
-Must be:
-
-Clearly visible
-
-Immediate (e.g., toast or checkmark) 
-
-
-
-
----
-
-2. Error State
-
+Must be clearly visible
+Must immediately confirm completion
+Error State
 Used when:
-
-Input validation fails
-
+Validation fails
 Photo upload fails
-
-Any action fails
-
-
-Must:
-
-Clearly indicate failure
-
-Include retry option where applicable 
-
-
-
-
----
-
-3. Loading State
-
-Used during:
-
-Photo uploads
-
-Save actions
-
-
-Must:
-
-Show progress or activity indicator
-
-Prevent user confusion 
-
-
-
-
-4. Disabled / Blocked State
-
+Any system action fails
+Must clearly indicate failure
+Must draw attention to the issue
+Loading State
 Used when:
-
+Photo upload is in progress
+Save action is processing
+Must indicate ongoing activity
+Must prevent user confusion
+Disabled State
+Used when:
 Required fields are missing
-
-Actions cannot proceed
-
-
-Must:
-Visually indicate non-interactive state
-
-
-
-
-5. Data Visualization Colors
-
+Action cannot be completed
+Must clearly indicate non-interactive elements
+4. Data Visualization
+Charts
 Used in:
-
 Pie chart (category breakdown)
-
 Bar chart (daily spending)
-
-
-Must:
-
+Colors must:
 Clearly distinguish categories
-
-Be easy to interpret at a glance 
-
-
-
-
----
-
-Feedback Visibility Rule
-
-No silent states:
-
-Every action must have a visible color-based response
-
+Be easy to interpret at a glance
+5. Feedback Rule
+No silent states
+Every action must have visible color feedback
 Users must always know:
-
 What is happening
-
-What just happened
+What succeeded
+What failed
