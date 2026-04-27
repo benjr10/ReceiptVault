@@ -1,0 +1,61 @@
+# Signup and Auth Flow Fixes (Strict Enforcement)
+
+The goal is to completely eliminate automatic login and dashboard redirection after a user signs up. We will enforce a strict "verify-before-login" policy at both the UI and Auth Provider levels.
+
+## User Review Required
+
+> [!IMPORTANT]
+> The `AuthContext` will now actively block unverified users from being considered "authenticated". This means unverified users will NOT have a session or user object in the context, even if Supabase technically returns one after signup.
+
+## Proposed Changes
+
+### Auth and Session Management
+
+#### [MODIFY] [AuthContext.tsx](file:///c:/Users/Administrator/Desktop/ReceiptVault/src/components/AuthContext.tsx)
+- Import `useRouter` from `next/navigation`.
+- Update `onAuthStateChange`:
+    - IF `session.user` exists AND `email_confirmed_at` is NULL:
+        - `setUser(null)`
+        - `setSession(null)`
+        - STOP execution (do not redirect, do not store session).
+    - ONLY IF `email_confirmed_at` exists:
+        - `setUser(user)`
+        - `setSession(session)`
+        - `router.push('/dashboard')`
+
+### Login & Registration UI
+
+#### [MODIFY] [login/page.tsx](file:///c:/Users/Administrator/Desktop/ReceiptVault/src/app/login/page.tsx)
+- **RegisterModal component**:
+    - Add `const [signupSuccess, setSignupSuccess] = useState(false)`.
+    - Update `handleSubmit`:
+        - After successful `supabase.auth.signUp`, ONLY call `setSignupSuccess(true)`.
+        - REMOVE `setUser`, `onClose`, and `router.push`.
+    - Update render logic:
+        - IF `signupSuccess` is true, RENDER ONLY the success state:
+            - Title: "Account Created Successfully!"
+            - Animation: Lottie success (or nice CSS placeholder if player not ready).
+            - Text: Verification link message.
+            - Helper: Return to app and log in message.
+            - Spam note: Check spam folder.
+            - NO form, NO inputs, NO buttons.
+- **LoginPage component**:
+    - Update login `handleSubmit`:
+        - Ensure it blocks unverified users with a clear error message.
+        - Ensure it ONLY redirects if `email_confirmed_at` is present.
+
+### Route Protection
+
+#### [MODIFY] [middleware.ts](file:///c:/Users/Administrator/Desktop/ReceiptVault/src/middleware.ts)
+- Reinforce strict blocking of unverified users from `/dashboard` and other protected routes.
+- Ensure they are always redirected to `/login`.
+
+## Verification Plan
+
+### Manual Verification
+1. **Signup**: Verify modal switches to success state, NO redirect, NO login.
+2. **Refresh**: Verify user remains logged out after refresh.
+3. **Protected Access**: Attempt to visit `/dashboard` while unverified; verify redirect to `/login`.
+4. **Login Attempt**: Attempt to login with an unverified account; verify error message and NO redirect.
+5. **Full Flow**: Verify dashboard access ONLY after email verification + manual login.
+
