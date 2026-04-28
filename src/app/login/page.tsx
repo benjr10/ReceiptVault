@@ -263,7 +263,7 @@ function RegisterModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -271,6 +271,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    if (user?.email_confirmed_at) {
+      router.replace('/dashboard');
+    }
+  }, [user, router]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -324,9 +330,6 @@ export default function LoginPage() {
       }
 
       setUser(data.user);
-      if (data.user?.email_confirmed_at) {
-        router.push("/dashboard");
-      }
     } catch {
       setErrors({ general: "Something went wrong. Please try again." });
     } finally {
@@ -340,7 +343,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/login`,
           scopes: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
         },
       });

@@ -57,9 +57,10 @@ export async function middleware(request: NextRequest) {
   const user = session?.user ?? null;
   
   const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(request.nextUrl.pathname);
+  const isPublicPage = ['/', '/splash', '/onboarding'].includes(request.nextUrl.pathname) || isAuthPage;
 
   if (!user) {
-    if (!isAuthPage && !request.nextUrl.pathname.startsWith('/auth')) {
+    if (!isPublicPage && !request.nextUrl.pathname.startsWith('/auth')) {
       console.log('MIDDLEWARE: Unauthenticated guest blocked from', request.nextUrl.pathname);
       return NextResponse.redirect(new URL('/login', request.url));
     }
@@ -70,6 +71,10 @@ export async function middleware(request: NextRequest) {
     if (isUnverified && !isAuthPage) {
       console.log('MIDDLEWARE: Unverified user blocked from', request.nextUrl.pathname);
       return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    if (!isUnverified && isPublicPage) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 
