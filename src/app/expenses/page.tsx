@@ -89,7 +89,7 @@ export default function ExpensesPage() {
 
   const handleRefresh = () => {
     if (!fetchInProgressRef.current) {
-      fetchExpenses();
+      hydrateAndFetch();
     }
   };
 
@@ -110,10 +110,7 @@ export default function ExpensesPage() {
     window.addEventListener("expense-synced", handleExpenseSynced as EventListener);
     setIsOffline(!navigator.onLine);
     
-    if (!initialLoadDoneRef.current) {
-      initialLoadDoneRef.current = true;
-      hydrateAndFetch();
-    }
+    // Initial load is now handled by a separate useEffect that depends on `user`
 
     return () => {
       window.removeEventListener("online", handleOnline);
@@ -123,9 +120,9 @@ export default function ExpensesPage() {
     };
   }, []);
 
+
   const hydrateAndFetch = useCallback(async () => {
-    if (!user || initialLoadDoneRef.current !== true) return;
-    initialLoadDoneRef.current = false;
+    if (!user) return;
 
     const offlineExpenses = getUserOfflineQueue(user.id);
     const cachedExpenses = getCachedExpenses();
@@ -210,14 +207,9 @@ export default function ExpensesPage() {
         console.error("EXPENSES - FETCH ERROR:", error);
       } else if (data) {
         saveCachedExpenses(data);
-        
-        if (mergeWithLocal) {
-          const offlineItems = getUserOfflineQueue(user.id);
-          const merged = mergeExpenses(data, offlineItems);
-          setExpenses(merged as Expense[]);
-        } else {
-          setExpenses(data as Expense[]);
-        }
+        const offlineItems = getUserOfflineQueue(user.id);
+        const merged = mergeExpenses(data, offlineItems);
+        setExpenses(merged as Expense[]);
       }
     } catch (error) {
       console.error("EXPENSES - FETCH ERROR:", error);
@@ -228,6 +220,13 @@ export default function ExpensesPage() {
       fetchInProgressRef.current = false;
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user && !initialLoadDoneRef.current) {
+      initialLoadDoneRef.current = true;
+      hydrateAndFetch();
+    }
+  }, [user, hydrateAndFetch]);
 
   const handleViewDetails = (expense: Expense) => {
     setSelectedExpense(expense);

@@ -126,6 +126,23 @@ export async function processQueue(userId: string): Promise<{ synced: number; fa
 
       if (result.success) {
         removeFromOfflineQueue(expense.tempId);
+        
+        // Add immediately to cache to prevent disappearing
+        const cached = getCachedExpenses();
+        const newCached = cached.filter(e => e.id !== result.realId);
+        newCached.unshift({
+          id: result.realId!,
+          user_id: expense.user_id,
+          title: expense.title,
+          amount: expense.amount,
+          category: expense.category,
+          note: expense.note,
+          project_client: expense.project_client,
+          created_at: expense.created_at,
+          receipt_url: expense.receipt_url,
+        });
+        saveCachedExpenses(newCached);
+
         synced++;
         
         window.dispatchEvent(new CustomEvent('expense-synced', {

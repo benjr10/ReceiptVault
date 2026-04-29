@@ -10,6 +10,7 @@ import { getCategoryColor, getCategoryLabel } from "@/lib/categories";
 import { exportCSV, exportPDF } from "@/lib/export";
 import { useAuth } from "@/components/AuthContext";
 import { formatCurrency } from "@/lib/currency";
+import { getUserOfflineQueue, getCachedExpenses, mergeExpenses } from "@/lib/offlineQueue";
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,7 @@ export default function ReportsPage() {
 
   const handleRefresh = () => {
     if (!fetchInProgressRef.current) {
+      loadCachedDataImmediately();
       fetchExpenses();
     }
   };
@@ -54,7 +56,6 @@ export default function ReportsPage() {
     window.addEventListener("offline", handleOffline);
     window.addEventListener("refresh-dashboard", handleRefresh);
     setIsOffline(!navigator.onLine);
-    fetchExpenses();
 
     return () => {
       window.removeEventListener("online", handleOnline);
@@ -62,6 +63,41 @@ export default function ReportsPage() {
       window.removeEventListener("refresh-dashboard", handleRefresh);
     };
   }, []);
+
+  const loadCachedDataImmediately = useCallback(() => {
+    if (!user) return;
+    
+    const offlineExpenses = getUserOfflineQueue(user.id);
+    const cachedExpenses = getCachedExpenses();
+    
+    const combined: any[] = [];
+    
+    for (const exp of offlineExpenses) {
+      combined.push({
+        ...exp,
+        id: exp.tempId,
+        isOffline: true,
+        date: exp.created_at,
+      });
+    }
+    
+    for (const exp of cachedExpenses) {
+      combined.push({
+        ...exp,
+        date: exp.created_at,
+      });
+    }
+    
+    combined.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    
+    if (combined.length > 0) {
+      setExpenses(combined);
+    }
+    setLoading(false);
+  }, [user]);
+
 
   const fetchExpenses = useCallback(async () => {
     if (fetchInProgressRef.current) return;
@@ -82,6 +118,8 @@ export default function ReportsPage() {
       fetchInProgressRef.current = false;
       return;
     }
+    
+    loadCachedDataImmediately();
 
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -108,12 +146,14 @@ export default function ReportsPage() {
       if (error) {
         console.log('Expenses table not available');
       } else {
-        setExpenses(prev => {
-          if (prev.length > 0 && data && data.length > 0) {
-            return prev;
-          }
-          return data || [];
-        });
+        const offlineItems = getUserOfflineQueue(user.id);
+        const merged = mergeExpenses(data || [], offlineItems);
+        
+        const withDates = merged.map(exp => ({
+          ...exp,
+          date: exp.created_at
+        }));
+        setExpenses(withDates as any[]);
       }
     } catch (error) {
       console.log('Error fetching expenses:', error);
@@ -125,7 +165,11 @@ export default function ReportsPage() {
     }
   }, [user]);
 
-  
+  useEffect(() => {
+    if (user && !fetchInProgressRef.current) {
+      fetchExpenses();
+    }
+  }, [user, fetchExpenses]);
 
   const getFilteredExpenses = () => {
     const now = new Date();

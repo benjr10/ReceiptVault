@@ -261,12 +261,29 @@ export default function EditExpenseModal({ expense, onClose, onSuccess }: EditEx
         updateData.category = category;
       }
 
-      const { error } = await supabase.from('expenses').update(updateData).eq('id', expense.id);
+      if ((expense as any).isOffline) {
+        // Update offline queue
+        import('@/lib/offlineQueue').then(({ updateQueueItem, getCachedExpenses, saveCachedExpenses }) => {
+          updateQueueItem(expense.id, updateData);
+          
+          // Update cache
+          const cached = getCachedExpenses();
+          const updatedCache = cached.map(e => e.id === expense.id ? { ...e, ...updateData } : e);
+          saveCachedExpenses(updatedCache);
+          
+          createExpenseEditedNotification(Number(updateData.amount || expense.amount), currency);
+          window.dispatchEvent(new CustomEvent("refresh-dashboard"));
+          onSuccess();
+          onClose();
+        });
+      } else {
+        const { error } = await supabase.from('expenses').update(updateData).eq('id', expense.id);
 
-      if (error) throw error;
-      createExpenseEditedNotification(Number(updateData.amount || expense.amount), currency);
-      onSuccess();
-      onClose();
+        if (error) throw error;
+        createExpenseEditedNotification(Number(updateData.amount || expense.amount), currency);
+        onSuccess();
+        onClose();
+      }
     } catch (err) {
       console.error('Error updating expense:', err);
     } finally {
@@ -276,12 +293,34 @@ export default function EditExpenseModal({ expense, onClose, onSuccess }: EditEx
 
   const handleDelete = async () => {
     try {
-      const { error } = await supabase.from('expenses').delete().eq('id', expense.id);
-      if (error) throw error;
-      createExpenseDeletedNotification(expense.amount, currency);
-      window.dispatchEvent(new CustomEvent("expense-deleted"));
-      window.dispatchEvent(new CustomEvent("refresh-dashboard"));
-      onClose();
+      if ((expense as any).isOffline) {
+        import('@/lib/offlineQueue').then(({ removeFromOfflineQueue, getCachedExpenses, saveCachedExpenses }) => {
+          removeFromOfflineQueue(expense.id);
+          
+          // Update cache
+          const cached = getCachedExpenses();
+          saveCachedExpenses(cached.filter(e => e.id !== expense.id));
+          
+          createExpenseDeletedNotification(expense.amount, currency);
+          window.dispatchEvent(new CustomEvent("expense-deleted", { detail: { id: expense.id, isOffline: true } }));
+          window.dispatchEvent(new CustomEvent("refresh-dashboard"));
+          onClose();
+        });
+      } else {
+        const { error } = await supabase.from('expenses').delete().eq('id', expense.id);
+        if (error) throw error;
+        
+        // Update cache for online deletes to prevent ghosting
+        import('@/lib/offlineQueue').then(({ getCachedExpenses, saveCachedExpenses }) => {
+          const cached = getCachedExpenses();
+          saveCachedExpenses(cached.filter(e => e.id !== expense.id));
+        });
+
+        createExpenseDeletedNotification(expense.amount, currency);
+        window.dispatchEvent(new CustomEvent("expense-deleted", { detail: { id: expense.id, isOffline: false } }));
+        window.dispatchEvent(new CustomEvent("refresh-dashboard"));
+        onClose();
+      }
     } catch (err) {
       console.error('Error deleting expense:', err);
     }
