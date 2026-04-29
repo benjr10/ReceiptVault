@@ -55,7 +55,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user ?? null;
-  
+
   const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(request.nextUrl.pathname);
   const isPublicPage = ['/', '/splash', '/onboarding'].includes(request.nextUrl.pathname) || isAuthPage;
 
@@ -67,7 +67,7 @@ export async function middleware(request: NextRequest) {
   } else {
     const emailConfirmed = user.email_confirmed_at;
     const isUnverified = !emailConfirmed;
-    
+
     if (isUnverified && !isAuthPage) {
       console.log('MIDDLEWARE: Unverified user blocked from', request.nextUrl.pathname);
       return NextResponse.redirect(new URL('/login', request.url));
@@ -83,6 +83,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|manifest.webmanifest|icons/).*)",
   ],
 };
