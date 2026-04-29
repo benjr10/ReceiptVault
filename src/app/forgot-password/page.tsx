@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Loader2 } from "lucide-react";
-import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
@@ -56,12 +55,10 @@ export default function ForgotPasswordPage() {
       <div className="min-h-screen bg-white flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center px-6">
           <div className="w-[280px] h-[180px] mb-8 relative">
-            <Image
-              src="/brand identity.svg"
+            <img
+              src="/icons/brand-identity.svg"
               alt="ReceiptVault"
-              fill
-              className="object-contain"
-              priority
+              className="w-full h-full object-contain"
             />
           </div>
 
@@ -100,12 +97,10 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center px-6">
         <div className="w-[280px] h-[180px] mb-8 relative">
-          <Image
-            src="/brand identity.svg"
+          <img
+            src="/icons/brand-identity.svg"
             alt="ReceiptVault"
-            fill
-            className="object-contain"
-            priority
+            className="w-full h-full object-contain"
           />
         </div>
 

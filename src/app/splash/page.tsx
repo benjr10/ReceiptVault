@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export default function SplashPage() {
   const router = useRouter();
@@ -31,12 +30,10 @@ export default function SplashPage() {
       ) : (
         <div className="min-h-screen w-full bg-neutral-0 flex flex-col items-center justify-center">
           <div className="relative w-[320px] h-[200px]">
-            <Image
+            <img
               src="/icons/brand-identity.svg"
               alt="ReceiptVault"
-              fill
-              className="object-contain"
-              priority
+              className="w-full h-full object-contain"
             />
           </div>
         </div>

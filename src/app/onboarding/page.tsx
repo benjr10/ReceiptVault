@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 const slides = [
   {
@@ -52,12 +51,10 @@ export default function OnboardingPage() {
 
         <div className="flex-1 flex flex-col items-center justify-center mt-4">
           <div className="relative w-full max-w-[320px] h-[280px] mb-8">
-            <Image
+            <img
               src={slides[currentSlide].image}
               alt={slides[currentSlide].title}
-              fill
-              className="object-contain"
-              priority
+              className="w-full h-full object-contain"
             />
           </div>
 

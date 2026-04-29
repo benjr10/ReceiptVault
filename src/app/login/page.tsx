@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, X } from "lucide-react";
-import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/AuthContext";
 
@@ -362,12 +361,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center px-6">
         <div className="w-[280px] h-[140px] mb-6 relative -mt-16">
-          <Image
-            src="/brand identity.svg"
+          <img
+            src="/icons/brand-identity.svg"
             alt="ReceiptVault"
-            fill
-            className="object-contain"
-            priority
+            className="w-full h-full object-contain"
           />
         </div>
 
