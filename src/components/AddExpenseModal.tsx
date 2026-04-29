@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthContext";
 import { getCurrencySymbol } from "@/lib/currency";
 import { saveToOfflineQueue } from "@/lib/offlineQueue";
 import { createExpenseRecordedNotification, canUploadReceipt } from "@/lib/notifications";
+import { compressImage, dataURLtoBlob } from "@/lib/image";
 
 const defaultCategories = [
   { name: "Transport", icon: "🚗" },
@@ -216,7 +217,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           note: note.trim() || undefined,
           project_client: projectClient.trim() || undefined,
           created_at: now,
-          receipt_url: receiptPreview || undefined,
+          receipt_url: receiptPreview || undefined, // Use compressed thumbnail
         });
         
         if (onSuccess) {
@@ -236,51 +237,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         return;
       }
 
-      let uploadedReceiptUrl = '';
-      if (receiptFile && user) {
-        const storageCheck = await canUploadReceipt(user.id);
-        if (!storageCheck.allowed) {
-          alert(storageCheck.message || "Storage limit reached. Cannot upload receipt.");
-          return;
-        }
-        
-        const fileExt = receiptFile.name.split('.').pop() || 'jpg';
-        const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substr(2, 9);
-        const fileName = `${user.id}/${timestamp}_${randomId}.${fileExt}`;
-        
-        console.log('=== RECEIPT UPLOAD ===');
-        console.log('userId:', user.id);
-        console.log('fileName:', fileName);
-        console.log('file type:', receiptFile.type);
-        console.log('file size:', receiptFile.size);
-        
-        if (!receiptFile.type || !receiptFile.type.startsWith('image/')) {
-          console.error('Invalid file type:', receiptFile.type);
-        }
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from(STORAGE_BUCKET)
-          .upload(fileName, receiptFile, {
-            contentType: receiptFile.type,
-            cacheControl: '3600',
-            upsert: false
-          });
-        
-        console.log('Upload success:', !uploadError);
-        console.log('Upload data:', uploadData);
-        console.log('Upload error:', uploadError);
-        
-        if (uploadError) {
-          console.error('Error uploading receipt:', uploadError.message);
-        } else {
-          // Successfully uploaded to private storage
-          // We now store just the fileName (path) instead of a public URL
-          expenseData.receipt_url = fileName;
-          console.log('Stored receipt path:', fileName);
-        }
-      }
-
+      // Online Flow: Insert record FIRST, then background upload
       const { data, error } = await supabase.from('expenses').insert(expenseData).select().single();
 
       if (error) {
@@ -289,13 +246,67 @@ const handleSubmit = async (e: React.FormEvent) => {
         return;
       }
 
+      // 1. Success feedback and close modal IMMEDIATELY
       if (onSuccess) {
         onSuccess(data as Expense);
         createExpenseRecordedNotification(data.amount, currency);
       }
       onClose();
+
+      // 2. Trigger background upload if receipt exists
+      if (receiptFile && currentUser) {
+        processAndUploadReceipt(data.id, receiptFile, currentUser.id);
+      }
+      
+      clearReceipt();
     } catch (error) {
       console.error('Error saving expense:', error);
+    }
+  };
+
+  const processAndUploadReceipt = async (expenseId: string, file: File, userId: string) => {
+    try {
+      console.log('Background upload started for:', expenseId);
+      
+      // 1. Storage quota check
+      const storageCheck = await canUploadReceipt(userId);
+      if (!storageCheck.allowed) {
+        console.warn('Storage limit reached, skipping upload');
+        return;
+      }
+
+      // 2. Multi-threaded-like compression (using Canvas via our utility)
+      // This is still on main thread but async, and much smaller than original
+      const compressedDataUrl = await compressImage(file, 1000, 0.8);
+      const compressedBlob = dataURLtoBlob(compressedDataUrl);
+      
+      // 3. Upload to storage
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(fileName, compressedBlob, {
+          contentType: 'image/jpeg',
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // 4. Update expense record with real receipt URL
+      const { error: updateError } = await supabase
+        .from('expenses')
+        .update({ receipt_url: fileName })
+        .eq('id', expenseId);
+
+      if (updateError) throw updateError;
+      
+      console.log('Background upload successful');
+      // Trigger a refresh so the image appears in the UI
+      window.dispatchEvent(new CustomEvent('expense-added'));
+    } catch (err) {
+      console.error('Background upload failed:', err);
     }
   };
 
@@ -307,7 +318,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
@@ -319,12 +330,22 @@ const handleSubmit = async (e: React.FormEvent) => {
         alert('Please upload an image file (JPEG, PNG, GIF, or WebP)');
         return;
       }
+      
       setReceiptFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setReceiptPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      
+      try {
+        // Create a small thumbnail for the preview and localStorage
+        const thumbnail = await compressImage(file, 400, 0.6);
+        setReceiptPreview(thumbnail);
+      } catch (error) {
+        console.error('Error compressing thumbnail:', error);
+        // Fallback to original if compression fails
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setReceiptPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -501,7 +522,6 @@ const handleSubmit = async (e: React.FormEvent) => {
               ref={fileInputRef}
               className="hidden"
               accept="image/*"
-              capture="environment"
               onChange={handleFileUpload}
             />
             <div 

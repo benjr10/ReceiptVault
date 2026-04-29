@@ -1,0 +1,42 @@
+# Mobile Image Upload & UX Optimizations
+
+This plan addresses the critical UX and performance issues specific to mobile devices regarding receipt image uploads. The core issues involve restricted file selection and main-thread blocking during upload.
+
+## User Review Required
+> [!IMPORTANT]
+> The proposed background upload strategy changes the timing of when an image is associated with an expense in the remote database. The expense record will be created immediately (without an image), and the image will attach itself to the record after background processing completes. Please review the implementation steps below.
+
+## Proposed Changes
+
+### [MODIFY] `src/components/AddExpenseModal.tsx`
+
+**1. Fix Camera + Gallery Access (Mobile Only)**
+- Remove the `capture="environment"` attribute from the `<input type="file" />`. Keeping only `accept="image/*"` allows mobile OSes (iOS/Android) to prompt the user with choices: "Take Photo" or "Choose from Library".
+
+**2. Optimize Camera Images & Ensure Local Storage Safety**
+- Implement an async `compressImage(file: File, maxWidth: number, quality: number): Promise<string>` utility using the HTML5 `<canvas>` API.
+- Inside `handleFileUpload`, asynchronously compress the image heavily (e.g. `maxWidth: 400`, `quality: 0.6`) to create a "thumbnail-level" base64 preview.
+- **Constraint Check:** Only this highly compressed thumbnail string will be saved to `localStorage` (via `receiptPreview`), ensuring offline mode remains lightweight, fast, and safe from quota overflow limits (5MB limit).
+- Keep a reference to the original `receiptFile` (or mildly compressed file) in memory to use for the actual upload if online.
+
+**3. Make Save Flow Non-Blocking & Prevent Main Thread Blocking**
+- Reorder the `handleSubmit` logic:
+  - **Offline:** No changes to flow, but the thumbnail image string will be extremely small, avoiding `localStorage` quota errors.
+  - **Online:** 
+    1. Immediately `insert()` the expense record *without* the `receipt_url` attached to get a valid `expense.id`.
+    2. Close the modal, trigger `onSuccess`, and dispatch the success notification *instantly*.
+    3. If an image is present, launch a background async function (`processAndUploadReceipt`) that:
+       - Mildly compresses the full-res `receiptFile` to an intermediate size (e.g., `maxWidth: 1000`, `quality: 0.8`) to save bandwidth while retaining readability.
+       - Uploads the image to `supabase.storage`.
+       - Updates the newly created expense record with the `receipt_url`.
+
+## Verification Plan
+
+### Automated Tests
+- Ensure `npm run build` compiles cleanly after implementing the canvas-based compression and background upload logic.
+
+### Manual Verification
+- **Mobile emulation:** Emulate a mobile device or test on an actual mobile device.
+- **Input Test:** Tap the "Snap / Upload receipt" button and verify that the OS offers both Camera and Gallery options.
+- **Performance & Constraints Test:** Go offline. Select a large high-res image. Save the expense. Check `localStorage` sizes to verify the thumbnail string is extremely small (few KB) and doesn't exceed quota.
+- **Background Test:** Go online. Select an image. Click "Save Expense". The modal should disappear and show a success notification instantly. The image should eventually appear in the dashboard/details modal once the background upload completes.
