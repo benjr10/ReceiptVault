@@ -14,7 +14,8 @@ export interface OfflineExpense {
   project_client?: string;
   created_at: string;
   receipt_url?: string;
-  status: 'pending' | 'syncing' | 'failed';
+  status: 'pending' | 'syncing' | 'failed' | 'synced';
+  realId?: string;
   isOffline: true;
   createdAt: number;
   retryCount: number;
@@ -125,7 +126,10 @@ export async function processQueue(userId: string): Promise<{ synced: number; fa
       const result = await syncExpense(expense);
 
       if (result.success) {
-        removeFromOfflineQueue(expense.tempId);
+        updateQueueItem(expense.tempId, { 
+          status: 'synced', 
+          realId: result.realId 
+        });
         
         // Add immediately to cache to prevent disappearing
         const cached = getCachedExpenses();
@@ -189,19 +193,54 @@ export function getLastSyncTime(): number | null {
 
 export function mergeExpenses(remote: CachedExpense[], offline: OfflineExpense[]): (CachedExpense & { isOffline?: boolean; tempId?: string })[] {
   const merged = new Map<string, CachedExpense & { isOffline?: boolean; tempId?: string }>();
-  
+  const syncedToPrune: string[] = [];
+
+  // 1. Add all remote expenses to the map
   for (const exp of remote) {
     merged.set(exp.id, { ...exp });
   }
   
+  // 2. Process offline expenses and reconcile
   for (const exp of offline) {
-    if (!merged.has(exp.tempId)) {
+    let isMatched = false;
+
+    // Reconciliation strategy 1: Direct realId match
+    if (exp.status === 'synced' && exp.realId && merged.has(exp.realId)) {
+      isMatched = true;
+      syncedToPrune.push(exp.tempId);
+    } 
+    
+    // Reconciliation strategy 2: Composite key fallback (createdAt + amount + title + category)
+    if (!isMatched) {
+      const expKey = `${exp.created_at}_${exp.amount}_${exp.title}_${exp.category || ''}`;
+      
+      for (const remoteExp of remote) {
+        const remoteKey = `${remoteExp.created_at}_${remoteExp.amount}_${remoteExp.title}_${remoteExp.category || ''}`;
+        if (expKey === remoteKey) {
+          isMatched = true;
+          if (exp.status === 'synced') {
+            syncedToPrune.push(exp.tempId);
+          }
+          break;
+        }
+      }
+    }
+
+    // If not found in remote, include it in the merged list
+    if (!isMatched) {
       merged.set(exp.tempId, {
         ...exp,
-        id: exp.tempId,
-        isOffline: true,
+        id: exp.realId || exp.tempId,
+        isOffline: exp.status !== 'synced',
       });
     }
+  }
+  
+  // 3. Silent pruning of confirmed items
+  if (syncedToPrune.length > 0) {
+    setTimeout(() => {
+      syncedToPrune.forEach(tempId => removeFromOfflineQueue(tempId));
+    }, 100);
   }
   
   return Array.from(merged.values());
