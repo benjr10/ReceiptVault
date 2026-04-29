@@ -450,7 +450,7 @@ export default function ExpensesPage() {
                           <p className="text-sm text-surface-500 truncate">{subtitle}</p>
                         </div>
                         <div className="flex items-center gap-3">
-                          {(expense as any).receipt_url && (
+                          {((expense as any).receipt_url || (expense as any).receiptUrl) && (
                             <span className="text-xs text-primary" title="Has receipt">📎</span>
                           )}
                           <p className="font-semibold text-surface-800 whitespace-nowrap">{formatCurrency(Number(expense.amount) || 0, currency)}</p>

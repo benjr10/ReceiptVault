@@ -70,6 +70,9 @@ function DetailView({ expense, onEdit, onDelete, onClose }: { expense: Expense; 
     setReceiptError(true);
   };
 
+  const isValidImage = (src: any): src is string => 
+    typeof src === "string" && src.length > 0;
+
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -154,7 +157,7 @@ function DetailView({ expense, onEdit, onDelete, onClose }: { expense: Expense; 
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-sm text-surface-500 font-medium">Securing access...</p>
               </div>
-            ) : receiptUrl && !receiptError ? (
+            ) : isValidImage(receiptUrl) && !receiptError ? (
               <img 
                 src={receiptUrl} 
                 alt="Receipt" 

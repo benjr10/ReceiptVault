@@ -304,7 +304,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       
       console.log('Background upload successful');
       // Trigger a refresh so the image appears in the UI
-      window.dispatchEvent(new CustomEvent('expense-added'));
+      window.dispatchEvent(new CustomEvent('refresh-dashboard'));
     } catch (err) {
       console.error('Background upload failed:', err);
     }

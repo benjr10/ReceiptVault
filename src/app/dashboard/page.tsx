@@ -101,7 +101,7 @@ const handleOnline = async () => {
   };
 
   const handleExpenseSynced = (e: CustomEvent) => {
-    if (!isMountedRef.current) return;
+    if (!isMountedRef.current || !e.detail) return;
     const { tempId, realId } = e.detail;
     setExpenses(prev => prev.map(exp => {
       if ((exp as any).tempId === tempId) {
@@ -112,8 +112,9 @@ const handleOnline = async () => {
   };
 
   const handleExpenseAdded = (e: CustomEvent) => {
-    if (!isMountedRef.current) return;
+    if (!isMountedRef.current || !e.detail) return;
     const newExpense = e.detail;
+    if (!newExpense.id) return;
     setExpenses(prev => {
       if (prev.some(exp => exp.id === newExpense.id)) return prev;
       return [newExpense, ...prev];
@@ -598,7 +599,7 @@ const handleOnline = async () => {
                   <p className="text-xs text-surface-500">{getCategoryLabel(expense.category) || 'Uncategorized'} • {expense.date}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {(expense as any).receipt_url && (
+                  {((expense as any).receipt_url || (expense as any).receiptUrl) && (
                     <span className="text-sm" title="Has receipt">📎</span>
                   )}
                   <p className="font-semibold text-surface-800">{formatCurrency(expense.amount, currency)}</p>
