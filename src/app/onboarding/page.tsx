@@ -6,17 +6,17 @@ import Image from "next/image";
 
 const slides = [
   {
-    image: "/onboard-animation1.svg",
+    image: "/icons/onboard-animation1.svg",
     title: "Track Your Expenses",
     subtitle: "Snap receipts, log expenses in seconds and stay organized.",
   },
   {
-    image: "/onboard-animation2.svg",
+    image: "/icons/onboard-animation2.svg",
     title: "Log Expenses in Under 10 Seconds",
     subtitle: "Enter amount, pick a category, and you're done. No spreadsheets. No stress.",
   },
   {
-    image: "/onboard-animation3.svg",
+    image: "/icons/onboard-animation3.svg",
     title: "Generate Tax Reports",
     subtitle: "All your expenses organized, categorized, and ready as a clean report anytime.",
   },
@@ -60,11 +60,11 @@ export default function OnboardingPage() {
               priority
             />
           </div>
-          
+
           <h1 className="text-[28px] font-semibold text-primary text-center mb-3 leading-tight">
             {slides[currentSlide].title}
           </h1>
-          
+
           <p className="text-surface-500 text-center text-sm leading-relaxed px-4 max-w-[280px]">
             {slides[currentSlide].subtitle}
           </p>
@@ -76,11 +76,10 @@ export default function OnboardingPage() {
           {slides.map((_, index) => (
             <div
               key={index}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentSlide 
-                  ? "bg-primary w-6" 
+              className={`w-2 h-2 rounded-full transition-all ${index === currentSlide
+                  ? "bg-primary w-6"
                   : "bg-surface-300"
-              }`}
+                }`}
             />
           ))}
         </div>

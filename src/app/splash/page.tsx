@@ -32,7 +32,7 @@ export default function SplashPage() {
         <div className="min-h-screen w-full bg-neutral-0 flex flex-col items-center justify-center">
           <div className="relative w-[320px] h-[200px]">
             <Image
-              src="/brand identity.svg"
+              src="/icons/brand-identity.svg"
               alt="ReceiptVault"
               fill
               className="object-contain"
