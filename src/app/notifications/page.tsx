@@ -44,7 +44,8 @@ const getTitle = (type: string): string => {
   }
 };
 
-const formatNotificationDate = (dateStr: string): string => {
+const formatNotificationDate = (dateStr: string | undefined | null): string => {
+  if (!dateStr) return 'Unknown';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return 'Unknown';
   

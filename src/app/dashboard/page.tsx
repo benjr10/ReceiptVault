@@ -75,9 +75,11 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | undefined | null) => {
     if (!dateStr) return 'Unknown';
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Unknown';
+    
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
@@ -141,7 +143,11 @@ export default function DashboardPage() {
         
         return isInRange;
       })
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      .sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      });
   }, [expenses, selectedPeriod]);
 
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
@@ -223,8 +229,12 @@ export default function DashboardPage() {
   const dailyTotals = weekDays.map(day => ({ day, amount: 0 }));
 
   filteredExpenses.forEach(exp => {
-    if (!exp.created_at) return;
-    const expDate = new Date(exp.created_at);
+    const rawDate = exp.created_at;
+    if (!rawDate) return;
+    
+    const expDate = new Date(rawDate);
+    if (isNaN(expDate.getTime())) return;
+    
     const expDay = getISODateString(expDate);
     
     if (expDay >= filterStart && expDay <= filterEnd) {

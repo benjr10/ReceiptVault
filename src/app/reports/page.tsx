@@ -9,21 +9,15 @@ import { supabase } from "@/lib/supabase";
 import { getCategoryColor, getCategoryLabel } from "@/lib/categories";
 import { exportCSV, exportPDF } from "@/lib/export";
 import { useAuth } from "@/components/AuthContext";
-import { useExpenses } from "@/components/ExpensesContext";
+import { useExpenses, Expense } from "@/components/ExpensesContext";
 import { formatCurrency } from "@/lib/currency";
+import { getISODateString } from "@/lib/dateUtils";
 
 export const dynamic = 'force-dynamic';
 
 const timeFilters = ["7 Days", "30 Days", "90 Days"];
 
-interface Expense {
-  id: string;
-  title: string;
-  amount: number;
-  category: string;
-  date: string;
-  created_at: string;
-}
+
 
 export default function ReportsPage() {
   const { user, currency } = useAuth();
@@ -48,25 +42,38 @@ export default function ReportsPage() {
 
   const getFilteredExpenses = () => {
     const now = new Date();
-    let startDate = new Date();
+    const endISO = getISODateString(now);
+    let startISO: string;
     
     if (selectedPeriod === "7 Days") {
-      startDate.setDate(now.getDate() - 7);
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      d.setUTCDate(d.getUTCDate() - 6);
+      startISO = getISODateString(d);
     } else if (selectedPeriod === "30 Days") {
-      startDate.setDate(now.getDate() - 30);
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      d.setUTCDate(d.getUTCDate() - 29);
+      startISO = getISODateString(d);
     } else {
-      startDate.setDate(now.getDate() - 90);
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      d.setUTCDate(d.getUTCDate() - 89);
+      startISO = getISODateString(d);
     }
 
     return expenses.filter(e => {
-      const expenseDate = new Date(e.created_at || e.date);
-      return expenseDate >= startDate;
+      const rawDate = e.created_at || e.date;
+      if (!rawDate) return false;
+      
+      const expenseISO = getISODateString(rawDate);
+      return expenseISO >= startISO && expenseISO <= endISO;
     });
   };
 
   const filteredExpenses = getFilteredExpenses();
   const totalSpending = filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-  const uniqueDays = new Set(filteredExpenses.map(e => (e.created_at || e.date).split('T')[0])).size;
+  const uniqueDays = new Set(filteredExpenses.map(e => {
+    const rawDate = e.created_at || e.date;
+    return rawDate ? getISODateString(rawDate) : '';
+  }).filter(d => d !== '')).size;
   const avgPerDay = uniqueDays > 0 ? totalSpending / uniqueDays : 0;
 
   const categoryTotals = filteredExpenses.reduce((acc: Record<string, number>, e) => {

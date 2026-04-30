@@ -157,7 +157,11 @@ export default function ExpensesPage() {
       });
     }
     
-    return [...result].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return [...result].sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return timeB - timeA;
+    });
   }, [expenses, searchQuery, selectedCategories, dateFilter]);
 
   const groupedExpenses = useMemo((): ExpenseGroup[] => {
@@ -196,8 +200,11 @@ export default function ExpensesPage() {
     if (olderExpenses.length > 0) {
       const olderGroups: Record<string, Expense[]> = {};
       olderExpenses.forEach(expense => {
-        if (!expense.created_at) return;
-        const date = new Date(expense.created_at);
+        const rawDate = expense.created_at;
+        if (!rawDate) return;
+        const date = new Date(rawDate);
+        if (isNaN(date.getTime())) return;
+        
         const key = date.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
         if (!olderGroups[key]) olderGroups[key] = [];
         olderGroups[key].push(expense);

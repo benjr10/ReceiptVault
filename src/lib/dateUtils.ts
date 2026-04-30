@@ -1,6 +1,9 @@
-export function getISODateString(date: string | Date): string {
+export function getISODateString(date: string | number | Date | undefined | null): string {
+  if (!date) return '';
   try {
-    return new Date(date).toISOString().split('T')[0];
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
   } catch (e) {
     console.error("Error parsing date for ISO string:", date, e);
     return '';
