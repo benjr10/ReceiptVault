@@ -126,8 +126,9 @@ export default function DashboardPage() {
     
     return expenses
       .filter(e => {
-        if (!e.created_at) return false;
-        const expDay = getISODateString(e.created_at);
+        const rawDate = e.date ?? e.created_at;
+        if (!rawDate) return false;
+        const expDay = getISODateString(rawDate);
         const isInRange = expDay >= start && expDay <= end;
         
         if (expenses.indexOf(e) < 3) {
@@ -144,8 +145,8 @@ export default function DashboardPage() {
         return isInRange;
       })
       .sort((a, b) => {
-        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        const timeA = (a.date ?? a.created_at) ? new Date(a.date ?? a.created_at).getTime() : 0;
+        const timeB = (b.date ?? b.created_at) ? new Date(b.date ?? b.created_at).getTime() : 0;
         return timeB - timeA;
       });
   }, [expenses, selectedPeriod]);
@@ -173,8 +174,9 @@ export default function DashboardPage() {
   const previousPeriodExpenses = useMemo(() => {
     const { start, end } = getPreviousPeriodRangeISO(selectedPeriod);
     return expenses.filter(e => {
-      if (!e.created_at) return false;
-      const expDay = getISODateString(e.created_at);
+      const rawDate = e.date ?? e.created_at;
+      if (!rawDate) return false;
+      const expDay = getISODateString(rawDate);
       return expDay >= start && expDay <= end;
     });
   }, [expenses, selectedPeriod]);
@@ -216,8 +218,8 @@ export default function DashboardPage() {
   const { start: periodStart } = getDateRangeISO(selectedPeriod);
   const uniqueDaysInPeriod = new Set(
     filteredExpenses
-      .filter(e => e.created_at)
-      .map(e => e.created_at!.split('T')[0])
+      .map(e => (e.date ?? e.created_at)?.split('T')[0])
+      .filter(Boolean)
   ).size;
   const avgPerDayActual = totalExpenses > 0 && uniqueDaysInPeriod > 0 ? totalExpenses / uniqueDaysInPeriod : 0;
 
@@ -229,7 +231,7 @@ export default function DashboardPage() {
   const dailyTotals = weekDays.map(day => ({ day, amount: 0 }));
 
   filteredExpenses.forEach(exp => {
-    const rawDate = exp.created_at;
+    const rawDate = exp.date ?? exp.created_at;
     if (!rawDate) return;
     
     const expDate = new Date(rawDate);
@@ -253,7 +255,7 @@ export default function DashboardPage() {
     title: expense.title,
     category: expense.category,
     amount: Number(expense.amount) || 0,
-    date: formatDate(expense.created_at),
+    date: formatDate(expense.date ?? expense.created_at),
     icon: getCategoryIcon(expense.category),
     expense,
   }));

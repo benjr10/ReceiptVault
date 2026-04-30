@@ -137,14 +137,16 @@ export default function ExpensesPage() {
           start = '';
       }
       
-      result = result.filter(expense => {
-        if (!expense.created_at) return false;
-        const expDay = getISODateString(expense.created_at);
+      result = result.filter(e => {
+        const rawDate = e.date ?? e.created_at;
+        if (!rawDate) return false;
+        
+        const expDay = getISODateString(rawDate);
         const isInRange = expDay >= start && expDay <= end;
         
-        if (expenses.indexOf(expense) < 3) {
+        if (expenses.indexOf(e) < 3) {
           console.log("EXPENSES LIST FILTER CHECK:", {
-            title: expense.title,
+            title: e.title,
             expenseDay: expDay,
             today: end,
             start,
@@ -158,8 +160,8 @@ export default function ExpensesPage() {
     }
     
     return [...result].sort((a, b) => {
-      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      const timeA = (a.date ?? a.created_at) ? new Date(a.date ?? a.created_at).getTime() : 0;
+      const timeB = (b.date ?? b.created_at) ? new Date(b.date ?? b.created_at).getTime() : 0;
       return timeB - timeA;
     });
   }, [expenses, searchQuery, selectedCategories, dateFilter]);
@@ -178,9 +180,10 @@ export default function ExpensesPage() {
     const olderExpenses: Expense[] = [];
     
     filteredExpenses.forEach(expense => {
-      if (!expense.created_at) return;
+      const rawDate = expense.date ?? expense.created_at;
+      if (!rawDate) return;
       
-      const expDay = getISODateString(expense.created_at);
+      const expDay = getISODateString(rawDate);
       
       if (expDay === todayStr) {
         todayExpenses.push(expense);
@@ -200,7 +203,7 @@ export default function ExpensesPage() {
     if (olderExpenses.length > 0) {
       const olderGroups: Record<string, Expense[]> = {};
       olderExpenses.forEach(expense => {
-        const rawDate = expense.created_at;
+        const rawDate = expense.date ?? expense.created_at;
         if (!rawDate) return;
         const date = new Date(rawDate);
         if (isNaN(date.getTime())) return;

@@ -60,7 +60,7 @@ export default function ReportsPage() {
     }
 
     return expenses.filter(e => {
-      const rawDate = e.created_at || e.date;
+      const rawDate = e.date ?? e.created_at;
       if (!rawDate) return false;
       
       const expenseISO = getISODateString(rawDate);
@@ -71,7 +71,7 @@ export default function ReportsPage() {
   const filteredExpenses = getFilteredExpenses();
   const totalSpending = filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   const uniqueDays = new Set(filteredExpenses.map(e => {
-    const rawDate = e.created_at || e.date;
+    const rawDate = e.date ?? e.created_at;
     return rawDate ? getISODateString(rawDate) : '';
   }).filter(d => d !== '')).size;
   const avgPerDay = uniqueDays > 0 ? totalSpending / uniqueDays : 0;

@@ -1,18 +1,10 @@
 import { jsPDF } from "jspdf";
-
-interface Expense {
-  id: string;
-  title: string;
-  amount: number;
-  category: string;
-  date: string;
-  created_at: string;
-}
+import { Expense } from "@/components/ExpensesContext";
 
 export function exportCSV(expenses: Expense[], fileName: string = "expenses.csv") {
   const headers = ["Date", "Title", "Category", "Amount"];
   const rows = expenses.map(e => [
-    new Date(e.created_at || e.date).toLocaleDateString(),
+    new Date(e.date || e.created_at).toLocaleDateString(),
     e.title || "Untitled Expense",
     e.category || "Uncategorized",
     e.amount.toString(),
@@ -79,7 +71,7 @@ export function exportPDF(expenses: Expense[], fileName: string = "expenses-repo
     doc.rect(margin, yPos, pageWidth - margin * 2, 8, "F");
 
     doc.setTextColor(71, 85, 105);
-    doc.text(new Date(expense.created_at || expense.date).toLocaleDateString(), margin + 5, yPos + 5.5);
+    doc.text(new Date(expense.date || expense.created_at).toLocaleDateString(), margin + 5, yPos + 5.5);
 
     doc.text((expense.title || "Untitled Expense").substring(0, 25), margin + 45, yPos + 5.5);
 
