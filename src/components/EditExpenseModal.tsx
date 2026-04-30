@@ -8,6 +8,7 @@ import { getCategoryIcon, getCategoryLabel } from "@/lib/categories";
 import { useAuth } from "@/components/AuthContext";
 import { formatCurrency } from "@/lib/currency";
 import { createExpenseDeletedNotification, createExpenseEditedNotification } from "@/lib/notifications";
+import { Expense } from "@/components/ExpensesContext";
 
 const defaultCategories = [
   { name: "Transport", icon: "🚗" },
@@ -19,16 +20,7 @@ const defaultCategories = [
   { name: "Miscellaneous", icon: "📦" },
 ];
 
-interface Expense {
-  id: string;
-  title: string;
-  amount: number;
-  category: string;
-  project_client: string | null;
-  note: string | null;
-  created_at: string;
-  receipt_url?: string;
-}
+
 
 interface EditExpenseModalProps {
   expense: Expense;

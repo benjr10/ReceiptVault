@@ -9,8 +9,8 @@ import { supabase } from "@/lib/supabase";
 import { getCategoryColor, getCategoryLabel } from "@/lib/categories";
 import { exportCSV, exportPDF } from "@/lib/export";
 import { useAuth } from "@/components/AuthContext";
+import { useExpenses } from "@/components/ExpensesContext";
 import { formatCurrency } from "@/lib/currency";
-import { getUserOfflineQueue, getCachedExpenses, mergeExpenses } from "@/lib/offlineQueue";
 
 export const dynamic = 'force-dynamic';
 
@@ -27,149 +27,24 @@ interface Expense {
 
 export default function ReportsPage() {
   const { user, currency } = useAuth();
+  const { expenses, loading, refresh } = useExpenses();
   const [isOffline, setIsOffline] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("30 Days");
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
-  const isMountedRef = useRef(true);
-  const fetchInProgressRef = useRef(false);
+
 
   useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
 
-  const handleOnline = () => setIsOffline(false);
-  const handleOffline = () => setIsOffline(true);
-
-  const handleRefresh = () => {
-    if (!fetchInProgressRef.current) {
-      loadCachedDataImmediately();
-      fetchExpenses();
-    }
-  };
-
-  useEffect(() => {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    window.addEventListener("refresh-dashboard", handleRefresh);
     setIsOffline(!navigator.onLine);
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("refresh-dashboard", handleRefresh);
     };
   }, []);
-
-  const loadCachedDataImmediately = useCallback(() => {
-    if (!user) return;
-    
-    const offlineExpenses = getUserOfflineQueue(user.id);
-    const cachedExpenses = getCachedExpenses();
-    
-    const combined: any[] = [];
-    
-    for (const exp of offlineExpenses) {
-      combined.push({
-        ...exp,
-        id: exp.tempId,
-        isOffline: true,
-        date: exp.created_at,
-      });
-    }
-    
-    for (const exp of cachedExpenses) {
-      combined.push({
-        ...exp,
-        date: exp.created_at,
-      });
-    }
-    
-    combined.sort((a, b) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-    
-    if (combined.length > 0) {
-      setExpenses(combined);
-    }
-    setLoading(false);
-  }, [user]);
-
-
-  const fetchExpenses = useCallback(async () => {
-    if (fetchInProgressRef.current) return;
-    
-    if (!navigator.onLine) {
-      setLoading(false);
-      fetchInProgressRef.current = false;
-      return;
-    }
-    
-    fetchInProgressRef.current = true;
-
-    if (!user) {
-      if (isMountedRef.current) {
-        setExpenses([]);
-        setLoading(false);
-      }
-      fetchInProgressRef.current = false;
-      return;
-    }
-    
-    loadCachedDataImmediately();
-
-    try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        if (isMountedRef.current) {
-          setExpenses([]);
-          setLoading(false);
-        }
-        fetchInProgressRef.current = false;
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
-
-      if (!isMountedRef.current) {
-        fetchInProgressRef.current = false;
-        return;
-      }
-
-      if (error) {
-        console.log('Expenses table not available');
-      } else {
-        const offlineItems = getUserOfflineQueue(user.id);
-        const merged = mergeExpenses(data || [], offlineItems);
-        
-        const withDates = merged.map(exp => ({
-          ...exp,
-          date: exp.created_at
-        }));
-        setExpenses(withDates as any[]);
-      }
-    } catch (error) {
-      console.log('Error fetching expenses:', error);
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
-      fetchInProgressRef.current = false;
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !fetchInProgressRef.current) {
-      fetchExpenses();
-    }
-  }, [user, fetchExpenses]);
 
   const getFilteredExpenses = () => {
     const now = new Date();

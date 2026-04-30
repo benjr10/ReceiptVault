@@ -9,29 +9,11 @@ import { supabase } from "@/lib/supabase";
 import EditExpenseModal from "@/components/EditExpenseModal";
 import { getCategoryIcon, getCategoryLabel, getCategoryColor } from "@/lib/categories";
 import { useAuth } from "@/components/AuthContext";
+import { useExpenses, Expense } from "@/components/ExpensesContext";
 import { formatCurrency } from "@/lib/currency";
-import {
-  getUserOfflineQueue,
-  processQueue,
-  mergeExpenses,
-  getCachedExpenses,
-  saveCachedExpenses,
-} from "@/lib/offlineQueue";
+import { getISODateString } from "@/lib/dateUtils";
 
 export const dynamic = 'force-dynamic';
-
-interface Expense {
-  id: string;
-  title: string;
-  amount: number;
-  category: string;
-  project_client: string | null;
-  note: string | null;
-  created_at: string;
-  receipt_url?: string;
-  isOffline?: boolean;
-  tempId?: string;
-}
 
 interface ExpenseGroup {
   title: string;
@@ -46,19 +28,15 @@ const DEFAULT_CATEGORIES = [
 
 export default function ExpensesPage() {
   const { user, currency } = useAuth();
+  const { expenses, loading, refresh } = useExpenses();
   const [isOffline, setIsOffline] = useState(false);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [showEdit, setShowEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
-  const [hydrated, setHydrated] = useState(false);
-  const isMountedRef = useRef(true);
-  const fetchInProgressRef = useRef(false);
-  const initialLoadDoneRef = useRef(false);
+
 
   const availableCategories = useMemo(() => {
     const cats = new Set<string>();
@@ -70,163 +48,22 @@ export default function ExpensesPage() {
 
   const hasActiveFilters = selectedCategories.length > 0 || dateFilter !== 'all';
 
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
-  const handleOnline = async () => {
-    setIsOffline(false);
-    if (user) {
-      await processQueue(user.id);
-      fetchExpenses();
-    }
-  };
 
-  const handleOffline = () => setIsOffline(true);
+    useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
 
-  const handleRefresh = () => {
-    if (!fetchInProgressRef.current) {
-      hydrateAndFetch();
-    }
-  };
-
-  const handleExpenseSynced = useCallback((e: CustomEvent) => {
-    const { tempId, realId } = e.detail;
-    setExpenses(prev => prev.map(exp => {
-      if (exp.tempId === tempId) {
-        return { ...exp, id: realId, isOffline: false, tempId: undefined };
-      }
-      return exp;
-    }));
-  }, []);
-
-  useEffect(() => {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    window.addEventListener("refresh-dashboard", handleRefresh);
-    window.addEventListener("expense-synced", handleExpenseSynced as EventListener);
     setIsOffline(!navigator.onLine);
     
-    // Initial load is now handled by a separate useEffect that depends on `user`
-
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("refresh-dashboard", handleRefresh);
-      window.removeEventListener("expense-synced", handleExpenseSynced as EventListener);
     };
   }, []);
 
-
-  const hydrateAndFetch = useCallback(async () => {
-    if (!user) return;
-
-    const offlineExpenses = getUserOfflineQueue(user.id);
-    const cachedExpenses = getCachedExpenses();
-    
-    const hasLocalData = offlineExpenses.length > 0 || cachedExpenses.length > 0;
-    let initialState: Expense[] = [];
-    
-    if (offlineExpenses.length > 0) {
-      initialState = offlineExpenses.map(exp => ({
-        id: exp.tempId,
-        title: exp.title,
-        amount: exp.amount,
-        category: exp.category || '',
-        project_client: exp.project_client || null,
-        note: exp.note || null,
-        created_at: exp.created_at,
-        receipt_url: exp.receipt_url,
-        isOffline: true,
-        tempId: exp.tempId,
-      }));
-    }
-    
-    if (cachedExpenses.length > 0) {
-      const cachedAsExpenses: Expense[] = cachedExpenses.map(exp => ({
-        ...exp,
-        category: exp.category || '',
-        project_client: exp.project_client || null,
-        note: exp.note || null,
-      }));
-      initialState = [...initialState, ...cachedAsExpenses];
-    }
-
-    if (initialState.length > 0) {
-      setExpenses(initialState);
-      setHydrated(true);
-      setLoading(false);
-    }
-
-    if (!navigator.onLine) {
-      setLoading(false);
-      return;
-    }
-
-    fetchExpenses(true);
-  }, [user]);
-
-  const fetchExpenses = useCallback(async (mergeWithLocal = false) => {
-    if (fetchInProgressRef.current) return;
-    
-    if (!navigator.onLine) {
-      setLoading(false);
-      fetchInProgressRef.current = false;
-      return;
-    }
-    
-    fetchInProgressRef.current = true;
-
-    if (!user) {
-      if (isMountedRef.current) {
-        if (!mergeWithLocal) {
-          setExpenses([]);
-        }
-        setLoading(false);
-      }
-      fetchInProgressRef.current = false;
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (!isMountedRef.current) {
-        fetchInProgressRef.current = false;
-        return;
-      }
-
-      if (error) {
-        console.error("EXPENSES - FETCH ERROR:", error);
-      } else if (data) {
-        saveCachedExpenses(data);
-        const offlineItems = getUserOfflineQueue(user.id);
-        const merged = mergeExpenses(data, offlineItems);
-        setExpenses(merged as Expense[]);
-      }
-    } catch (error) {
-      console.error("EXPENSES - FETCH ERROR:", error);
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
-      fetchInProgressRef.current = false;
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !initialLoadDoneRef.current) {
-      initialLoadDoneRef.current = true;
-      hydrateAndFetch();
-    }
-  }, [user, hydrateAndFetch]);
 
   const handleViewDetails = (expense: Expense) => {
     setSelectedExpense(expense);
@@ -234,7 +71,7 @@ export default function ExpensesPage() {
   };
 
   const handleEditSuccess = () => {
-    fetchExpenses();
+    refresh();
     window.dispatchEvent(new CustomEvent("expense-added"));
   };
 
@@ -277,43 +114,60 @@ export default function ExpensesPage() {
     
     if (dateFilter !== 'all') {
       const now = new Date();
-      now.setHours(23, 59, 59, 999);
-      const today = new Date(now);
-      today.setHours(0, 0, 0, 0);
+      const end = getISODateString(now);
+      let start: string;
+      
+      switch (dateFilter) {
+        case 'today':
+          start = end;
+          break;
+        case '7days': {
+          const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+          d.setUTCDate(d.getUTCDate() - 6);
+          start = getISODateString(d);
+          break;
+        }
+        case '30days': {
+          const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+          d.setUTCDate(d.getUTCDate() - 29);
+          start = getISODateString(d);
+          break;
+        }
+        default:
+          start = '';
+      }
       
       result = result.filter(expense => {
         if (!expense.created_at) return false;
-        const expDate = new Date(expense.created_at);
+        const expDay = getISODateString(expense.created_at);
+        const isInRange = expDay >= start && expDay <= end;
         
-        switch (dateFilter) {
-          case 'today':
-            return expDate >= today;
-          case '7days': {
-            const sevenDaysAgo = new Date(today);
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-            return expDate >= sevenDaysAgo;
-          }
-          case '30days': {
-            const thirtyDaysAgo = new Date(today);
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-            return expDate >= thirtyDaysAgo;
-          }
-          default:
-            return true;
+        if (expenses.indexOf(expense) < 3) {
+          console.log("EXPENSES LIST FILTER CHECK:", {
+            title: expense.title,
+            expenseDay: expDay,
+            today: end,
+            start,
+            end,
+            isInRange
+          });
         }
+        
+        return isInRange;
       });
     }
     
-    return result;
+    return [...result].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [expenses, searchQuery, selectedCategories, dateFilter]);
 
   const groupedExpenses = useMemo((): ExpenseGroup[] => {
     const groups: ExpenseGroup[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const todayStr = getISODateString(now);
     
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    const yesterdayStr = getISODateString(yesterday);
     
     const todayExpenses: Expense[] = [];
     const yesterdayExpenses: Expense[] = [];
@@ -322,12 +176,11 @@ export default function ExpensesPage() {
     filteredExpenses.forEach(expense => {
       if (!expense.created_at) return;
       
-      const expDate = new Date(expense.created_at);
-      expDate.setHours(0, 0, 0, 0);
+      const expDay = getISODateString(expense.created_at);
       
-      if (expDate.getTime() === today.getTime()) {
+      if (expDay === todayStr) {
         todayExpenses.push(expense);
-      } else if (expDate.getTime() === yesterday.getTime()) {
+      } else if (expDay === yesterdayStr) {
         yesterdayExpenses.push(expense);
       } else {
         olderExpenses.push(expense);

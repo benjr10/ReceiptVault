@@ -7,16 +7,10 @@ import BottomNav from "@/components/BottomNav";
 import OfflineBanner from "@/components/OfflineBanner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/AuthContext";
+import { useExpenses, Expense } from "@/components/ExpensesContext";
 import { getCategoryIcon, getCategoryColor, getCategoryLabel } from "@/lib/categories";
 import { formatCurrency } from "@/lib/currency";
-import {
-  getUserOfflineQueue,
-  processQueue,
-  mergeExpenses,
-  getCachedExpenses,
-  saveCachedExpenses,
-  CachedExpense,
-} from "@/lib/offlineQueue";
+import { getISODateString } from "@/lib/dateUtils";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,15 +23,6 @@ const PERIOD_OPTIONS: { value: PeriodOption; label: string; days: number }[] = [
   { value: 'month', label: 'This Month', days: 0 },
 ];
 
-interface Expense {
-  id: string;
-  title: string;
-  amount: number;
-  category: string;
-  date: string;
-  created_at: string;
-}
-
 interface Category {
   name: string;
   total: number;
@@ -45,14 +30,11 @@ interface Category {
 }
 
 export default function DashboardPage() {
-  const { user, loading, currency } = useAuth();
+  const { user, loading: authLoading, currency } = useAuth();
+  const { expenses, loading: dataLoading, refresh } = useExpenses();
   const [isOffline, setIsOffline] = useState(false);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>('30');
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
-  const isMountedRef = useRef(true);
-  const fetchInProgressRef = useRef(false);
 
   const getInitials = (name: string, email: string): string => {
     if (!name && !email) return '?';
@@ -76,66 +58,20 @@ export default function DashboardPage() {
   console.log("DASHBOARD - USER FROM CONTEXT:", user);
   console.log("DASHBOARD - USER METADATA:", user?.user_metadata);
 
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
-const handleOnline = async () => {
-    setIsOffline(false);
-    if (user?.id) {
-      await processQueue(user.id);
-    }
-    await fetchData();
-  };
-
-  const handleOffline = () => setIsOffline(true);
-
-  const handleRefresh = () => {
-    if (!fetchInProgressRef.current) {
-      setDataLoading(true);
-      fetchData();
-    }
-  };
-
-  const handleExpenseSynced = (e: CustomEvent) => {
-    if (!isMountedRef.current || !e.detail) return;
-    const { tempId, realId } = e.detail;
-    setExpenses(prev => prev.map(exp => {
-      if ((exp as any).tempId === tempId) {
-        return { ...exp, id: realId, isOffline: false };
-      }
-      return exp;
-    }));
-  };
-
-  const handleExpenseAdded = (e: CustomEvent) => {
-    if (!isMountedRef.current || !e.detail) return;
-    const newExpense = e.detail;
-    if (!newExpense.id) return;
-    setExpenses(prev => {
-      if (prev.some(exp => exp.id === newExpense.id)) return prev;
-      return [newExpense, ...prev];
-    });
-  };
 
   useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    window.addEventListener("refresh-dashboard", handleRefresh);
-    window.addEventListener("expense-added", handleExpenseAdded as any);
-    window.addEventListener("expense-synced", handleExpenseSynced as any);
 
     setIsOffline(!navigator.onLine);
     
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("refresh-dashboard", handleRefresh);
-      window.removeEventListener("expense-added", handleExpenseAdded as any);
-      window.removeEventListener("expense-synced", handleExpenseSynced as any);
     };
   }, []);
 
@@ -153,112 +89,6 @@ const handleOnline = async () => {
     return date.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
   };
 
-  const loadCachedDataImmediately = useCallback(() => {
-    if (!user) return;
-    
-    const offlineExpenses = getUserOfflineQueue(user.id);
-    const cachedExpenses = getCachedExpenses();
-    
-    const combined: any[] = [];
-    
-    for (const exp of offlineExpenses) {
-      combined.push({
-        ...exp,
-        id: exp.tempId,
-        isOffline: true,
-        date: formatDate(exp.created_at),
-      });
-    }
-    
-    for (const exp of cachedExpenses) {
-      combined.push({
-        ...exp,
-        date: formatDate(exp.created_at),
-      });
-    }
-    
-    combined.sort((a, b) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-    
-    if (combined.length > 0) {
-      setExpenses(combined);
-    }
-    setDataLoading(false);
-  }, [user]);
-
-
-
-  const fetchData = useCallback(async () => {
-    if (fetchInProgressRef.current) return;
-    
-    if (!navigator.onLine) {
-      setDataLoading(false);
-      fetchInProgressRef.current = false;
-      return;
-    }
-    
-    // Even if already has data, refresh from server to sync any pending
-    loadCachedDataImmediately();
-    
-    fetchInProgressRef.current = true;
-
-    if (!user) {
-      if (isMountedRef.current) {
-        setExpenses([]);
-        setDataLoading(false);
-      }
-      fetchInProgressRef.current = false;
-      return;
-    }
-
-    try {
-      const { data: expenseData, error: expenseError } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (!isMountedRef.current) {
-        fetchInProgressRef.current = false;
-        return;
-      }
-
-      if (expenseError) {
-        console.error("DASHBOARD - FETCH ERROR:", expenseError);
-      } else if (expenseData) {
-        saveCachedExpenses(expenseData);
-        
-        const offlineItems = getUserOfflineQueue(user.id);
-        const merged = mergeExpenses(expenseData, offlineItems);
-        
-        const withDates = merged.map((exp: any) => ({
-          ...exp,
-          date: formatDate(exp.created_at),
-        })).sort((a: any, b: any) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        
-        setExpenses(withDates);
-      }
-    } catch (error) {
-      console.error("DASHBOARD - ERROR:", error);
-    } finally {
-      if (isMountedRef.current) {
-        setDataLoading(false);
-      }
-      fetchInProgressRef.current = false;
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user && !fetchInProgressRef.current) {
-      console.log("DASHBOARD - USER AVAILABLE, FETCHING DATA");
-      fetchData();
-    }
-  }, [user, fetchData]);
-
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -271,48 +101,75 @@ const handleOnline = async () => {
   const initials = getInitials(fullName, email);
   const avatarColor = getAvatarColor(fullName || email);
 
-  const getDateRange = (period: PeriodOption): { start: Date; end: Date } => {
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-    const start = new Date();
+  const getDateRangeISO = (period: PeriodOption): { start: string; end: string } => {
+    const now = new Date();
+    const end = getISODateString(now);
+    let start: string;
     
     if (period === 'month') {
-      start.setDate(1);
-      start.setHours(0, 0, 0, 0);
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      start = getISODateString(d);
     } else {
       const days = parseInt(period);
-      start.setDate(end.getDate() - days + 1);
-      start.setHours(0, 0, 0, 0);
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      d.setUTCDate(d.getUTCDate() - days + 1);
+      start = getISODateString(d);
     }
     
     return { start, end };
   };
 
   const filteredExpenses = useMemo(() => {
-    const { start, end } = getDateRange(selectedPeriod);
-    return expenses.filter(e => {
-      if (!e.created_at) return false;
-      const expDate = new Date(e.created_at);
-      return expDate >= start && expDate <= end;
-    });
+    const { start, end } = getDateRangeISO(selectedPeriod);
+    
+    return expenses
+      .filter(e => {
+        if (!e.created_at) return false;
+        const expDay = getISODateString(e.created_at);
+        const isInRange = expDay >= start && expDay <= end;
+        
+        if (expenses.indexOf(e) < 3) {
+          console.log("DASHBOARD FILTER CHECK:", {
+            title: e.title,
+            expense: expDay,
+            today: getISODateString(new Date()),
+            start,
+            end,
+            isInRange
+          });
+        }
+        
+        return isInRange;
+      })
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [expenses, selectedPeriod]);
 
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
-  const getPreviousPeriodRange = (period: PeriodOption): { start: Date; end: Date } => {
-    const { start: currentStart, end: currentEnd } = getDateRange(period);
-    const duration = currentEnd.getTime() - currentStart.getTime();
-    const previousEnd = new Date(currentStart.getTime() - 1);
-    const previousStart = new Date(previousEnd.getTime() - duration);
-    return { start: previousStart, end: previousEnd };
+  const getPreviousPeriodRangeISO = (period: PeriodOption): { start: string; end: string } => {
+    const { start: currentStart, end: currentEnd } = getDateRangeISO(period);
+    const startDate = new Date(currentStart);
+    const endDate = new Date(currentEnd);
+    const durationDays = Math.round((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+    
+    const prevEnd = new Date(startDate);
+    prevEnd.setUTCDate(prevEnd.getUTCDate() - 1);
+    
+    const prevStart = new Date(prevEnd);
+    prevStart.setUTCDate(prevStart.getUTCDate() - durationDays + 1);
+    
+    return { 
+      start: getISODateString(prevStart), 
+      end: getISODateString(prevEnd) 
+    };
   };
 
   const previousPeriodExpenses = useMemo(() => {
-    const { start, end } = getPreviousPeriodRange(selectedPeriod);
+    const { start, end } = getPreviousPeriodRangeISO(selectedPeriod);
     return expenses.filter(e => {
       if (!e.created_at) return false;
-      const expDate = new Date(e.created_at);
-      return expDate >= start && expDate <= end;
+      const expDay = getISODateString(e.created_at);
+      return expDay >= start && expDay <= end;
     });
   }, [expenses, selectedPeriod]);
 
@@ -350,7 +207,7 @@ const handleOnline = async () => {
     : (periodInfo?.days || 30);
   const avgPerDay = totalExpenses > 0 && filteredExpenses.length > 0 ? totalExpenses / avgDays : 0;
 
-  const { start: periodStart } = getDateRange(selectedPeriod);
+  const { start: periodStart } = getDateRangeISO(selectedPeriod);
   const uniqueDaysInPeriod = new Set(
     filteredExpenses
       .filter(e => e.created_at)
@@ -361,18 +218,17 @@ const handleOnline = async () => {
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const now = new Date();
-  const { start: filterStart, end: filterEnd } = getDateRange(selectedPeriod);
+  const { start: filterStart, end: filterEnd } = getDateRangeISO(selectedPeriod);
   
   const dailyTotals = weekDays.map(day => ({ day, amount: 0 }));
 
   filteredExpenses.forEach(exp => {
     if (!exp.created_at) return;
     const expDate = new Date(exp.created_at);
-    const localExpDate = new Date(expDate.getFullYear(), expDate.getMonth(), expDate.getDate());
-    const localFilterStart = new Date(filterStart.getFullYear(), filterStart.getMonth(), filterStart.getDate());
+    const expDay = getISODateString(expDate);
     
-    if (localExpDate >= localFilterStart) {
-      const dayIndex = expDate.getDay();
+    if (expDay >= filterStart && expDay <= filterEnd) {
+      const dayIndex = expDate.getUTCDay();
       dailyTotals[dayIndex].amount += Number(exp.amount) || 0;
     }
   });
@@ -398,7 +254,7 @@ const handleOnline = async () => {
 
   const hasExpenses = filteredExpenses.length > 0;
 
-  if (loading) {
+  if (authLoading || dataLoading) {
     return (
       <div className="min-h-screen bg-surface-50 flex items-center justify-center">
         <div className="text-center">
@@ -607,7 +463,7 @@ const handleOnline = async () => {
               </div>
             ))}
           </div>
-        ) : !loading ? (
+        ) : !(authLoading || dataLoading) ? (
           <div className="bg-white rounded-2xl p-8 text-center">
             <p className="text-surface-400">No expenses recorded yet</p>
             <p className="text-sm text-surface-500 mt-1">Add your first expense to get started</p>

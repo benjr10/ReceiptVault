@@ -38,6 +38,7 @@ export default function ProfilePage() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || "";
@@ -112,6 +113,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       // Clear sensitive local storage data before logout
       const keysToRemove = [
@@ -156,7 +158,12 @@ export default function ProfilePage() {
               }`}
             >
               {item.href ? (
-                <Link href={item.href} className="flex items-center gap-3 flex-1">
+                <Link 
+                  href={item.href} 
+                  prefetch={true}
+                  onMouseEnter={() => router.prefetch(item.href!)}
+                  className="flex items-center gap-3 flex-1"
+                >
                   {content}
                 </Link>
               ) : (
@@ -185,11 +192,21 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-white pb-20">
       <header className="bg-white px-4 pt-12 pb-4">
         <div className="flex items-center justify-center relative">
-          <Link href="/dashboard" className="absolute left-0 p-2 -ml-2">
+          <Link 
+            href="/dashboard" 
+            prefetch={true}
+            onMouseEnter={() => router.prefetch("/dashboard")}
+            className="absolute left-0 p-2 -ml-2"
+          >
             <ChevronLeft className="w-6 h-6 text-primary" />
           </Link>
           <h1 className="text-xl font-semibold text-surface-800">Profile</h1>
-          <Link href="/notifications" className="absolute right-0 p-2 -mr-2">
+          <Link 
+            href="/notifications" 
+            prefetch={true}
+            onMouseEnter={() => router.prefetch("/notifications")}
+            className="absolute right-0 p-2 -mr-2"
+          >
             <div 
               className="w-9 h-9 rounded-full flex items-center justify-center"
               style={{ backgroundColor: '#CCF4FF' }}
@@ -309,6 +326,8 @@ export default function ProfilePage() {
                 <Link
                   key={item.label}
                   href={item.href || ''}
+                  prefetch={true}
+                  onMouseEnter={() => router.prefetch(item.href || '')}
                   className={`flex items-center gap-3 p-4 border-b border-surface-100 last:border-b-0 text-surface-700 hover:bg-surface-50 transition-colors ${
                     index !== aboutItems.length - 1 ? "border-b border-surface-100" : ""
                   }`}
@@ -330,13 +349,24 @@ export default function ProfilePage() {
         <div className="px-4 mt-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm text-error hover:bg-red-50 transition-colors border border-surface-100"
+            disabled={isLoggingOut}
+            className="w-full flex items-center justify-center gap-3 p-4 bg-white rounded-2xl shadow-sm text-error hover:bg-red-50 transition-colors border border-surface-100 disabled:opacity-50"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium">Logout</span>
+            {isLoggingOut ? (
+              <>
+                <span className="w-5 h-5 border-2 border-error border-t-transparent rounded-full animate-spin" />
+                <span className="font-medium">Logging out...</span>
+              </>
+            ) : (
+              <>
+                <LogOut className="w-5 h-5" />
+                <span className="font-medium">Logout</span>
+              </>
+            )}
           </button>
         </div>
       </div>
+
 
       <BottomNav />
     </div>

@@ -8,6 +8,7 @@ import { getCurrencySymbol } from "@/lib/currency";
 import { saveToOfflineQueue } from "@/lib/offlineQueue";
 import { createExpenseRecordedNotification, canUploadReceipt } from "@/lib/notifications";
 import { compressImage, dataURLtoBlob } from "@/lib/image";
+import { Expense } from "@/components/ExpensesContext";
 
 const defaultCategories = [
   { name: "Transport", icon: "🚗" },
@@ -23,14 +24,6 @@ const isDefaultCategory = (name: string): boolean => {
   return defaultCategories.some(c => c.name.toLowerCase() === name.toLowerCase()) ||
     name.toLowerCase() === "uncategorized";
 };
-
-interface Expense {
-  id: string;
-  title: string;
-  amount: number;
-  category: string;
-  created_at: string;
-}
 
 interface AddExpenseModalProps {
   isOpen: boolean;

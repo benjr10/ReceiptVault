@@ -4,6 +4,7 @@ import { useState, useEffect, ReactNode } from "react";
 import AddExpenseModal from "./AddExpenseModal";
 import EditExpenseModal from "./EditExpenseModal";
 import { AuthProvider } from "./AuthContext";
+import { ExpensesProvider } from "./ExpensesContext";
 
 interface AppWrapperProps {
   children: ReactNode;
@@ -79,29 +80,31 @@ export default function AppWrapper({ children }: AppWrapperProps) {
 
   return (
     <AuthProvider>
-      <>
-        {children}
-        <AddExpenseModal 
-        isOpen={showAddExpense} 
-        onClose={handleCloseAdd}
-        onSuccess={handleAddSuccess}
-      />
-      {showEditExpense && editingExpense && (
-        <EditExpenseModal
-          expense={editingExpense}
-          onClose={handleCloseEdit}
-          onSuccess={handleEditSuccess}
-        />
-      )}
-      {successMessage?.visible && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-secondary text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          <span className="label-medium">{successMessage.text}</span>
-        </div>
-      )}
-    </>
+      <ExpensesProvider>
+        <>
+          {children}
+          <AddExpenseModal 
+            isOpen={showAddExpense} 
+            onClose={handleCloseAdd}
+            onSuccess={handleAddSuccess}
+          />
+          {showEditExpense && editingExpense && (
+            <EditExpenseModal
+              expense={editingExpense}
+              onClose={handleCloseEdit}
+              onSuccess={handleEditSuccess}
+            />
+          )}
+          {successMessage?.visible && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-secondary text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="label-medium">{successMessage.text}</span>
+            </div>
+          )}
+        </>
+      </ExpensesProvider>
     </AuthProvider>
   );
 }

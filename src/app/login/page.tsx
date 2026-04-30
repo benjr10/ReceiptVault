@@ -329,6 +329,14 @@ export default function LoginPage() {
       }
 
       setUser(data.user);
+      
+      // Prefetch important routes immediately after login
+      router.prefetch('/dashboard');
+      router.prefetch('/expenses');
+      router.prefetch('/reports');
+      router.prefetch('/profile');
+      router.prefetch('/categories');
+      router.prefetch('/settings');
     } catch {
       setErrors({ general: "Something went wrong. Please try again." });
     } finally {

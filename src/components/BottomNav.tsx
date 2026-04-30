@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   Home, 
   Receipt, 
@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleAddClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -58,6 +59,8 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
+              onMouseEnter={() => router.prefetch(item.href)}
               className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-colors ${
                 isActive ? "text-primary" : "text-surface-400 hover:text-surface-600"
               }`}
